@@ -3,18 +3,18 @@
 #include "matrix.h"
 
 #define INPUT 5// 4096
-#define LAYER_1 50 // 8192
-// #define LAYER_2 6144
+#define LAYER_1 100 // 8192
+#define LAYER_2 50 //6144
 // #define LAYER_3 3072
 // #define LAYER_4 1024
-#define OUTPUT 5
+#define OUTPUT 10
 
-#define N 20
+#define N 5
 
 double evaluate(Matrix *pred_val, Matrix *true_val) {
 
     int correct_preds = 0;
-    // printf("--PREDICTIONS--\n");
+    // printf("--PREDICTIO  NS--\n");
     // printf("PRED | CORRECT\n");
     for (int i = 0; i < pred_val->height; ++i) {
         
@@ -81,28 +81,33 @@ void fit(float *data_X, float *data_Y, int len, float eps, float learning_rate, 
     Matrix *w1 = genRandomMatrix(LAYER_1, INPUT);
     printf("WEIGHTS INPUT -> LAYER 1\n");
     matPrint(w1);
-    Matrix *w2 = genRandomMatrix(OUTPUT, LAYER_1);
-    printf("WEIGHTS LAYER 1 -> OUTPUT\n");
+    Matrix *w2 = genRandomMatrix(LAYER_2, LAYER_1);
+    printf("WEIGHTS LAYER 1 -> LAYER 2\n");
     matPrint(w2);
+    Matrix *w3 = genRandomMatrix(OUTPUT, LAYER_2);
+    printf("WEIGHTS LAYER 2 -> OUTPUT\n");
+    matPrint(w3);
+
     // Matrix *w3 = genRandomMatrix(LAYER_3, LAYER_2);
     // Matrix *w4 = genRandomMatrix(LAYER_4, LAYER_3);
     // Matrix *w5 = genRandomMatrix(OUTPUT, LAYER_4);
 
 
     Matrix *dw1 = genRandomMatrix(LAYER_1, INPUT);
-    Matrix *dw2 = genRandomMatrix(OUTPUT, LAYER_1);
+    Matrix *dw2 = genRandomMatrix(LAYER_2, LAYER_1);
+    Matrix *dw3 = genRandomMatrix(OUTPUT, LAYER_2);
     
     printf("Allocated weight matrices\n");
 
     Matrix *g1 = genMatrix(LAYER_1, N, 0);
-    Matrix *g2 = genMatrix(OUTPUT, N, 0);
-    // Matrix *g3 = genMatrix(LAYER_3, len, 0);
+    Matrix *g2 = genMatrix(LAYER_2, N, 0);
+    Matrix *g3 = genMatrix(OUTPUT, N, 0);
     // Matrix *g4 = genMatrix(LAYER_4, len, 0);
     // Matrix *g5 = genMatrix(OUTPUT, len, 0);
 
     Matrix *d1 = genMatrix(LAYER_1, N, 0);
-    Matrix *d2 = genMatrix(OUTPUT, N, 0);
-    // Matrix *d3 = genMatrix(LAYER_3, len, 0);
+    Matrix *d2 = genMatrix(LAYER_2, N, 0);
+    Matrix *d3 = genMatrix(OUTPUT, N, 0);
     // Matrix *d4 = genMatrix(LAYER_4, len, 0);
     // Matrix *d5 = genMatrix(OUTPUT, len, 0);
 
@@ -117,7 +122,7 @@ void fit(float *data_X, float *data_Y, int len, float eps, float learning_rate, 
     printf("Allocated variables...\n");
 
     // Gradient Descent
-    for (int i = 0; i < 2000; ++i) {
+    for (int i = 0; i < 20000; ++i) {
         
         printf("-------------\n");
         printf("Epoch %d\n", i);
@@ -130,32 +135,54 @@ void fit(float *data_X, float *data_Y, int len, float eps, float learning_rate, 
         // printf("RESULT 1 AFTER RELU\n");
         matRelu(g1);
         // matPrint(g1);
-        
-        // printf("LAYER_1 X W2 -> OUTPUT\n");
+
+        // printf("W1 X W2 -> LAYER_2\n");
         matMul(g1, w2, g2);
         // matPrint(g2);
-        // printf("RESULT AFTER SOFTMAX\n");
-        matSoftmax(g2);
+        // printf("RESULT 2 AFTER RELU\n");
+        matRelu(g2);
         // matPrint(g2);
+        
+        // printf("LAYER_2 X W2 -> OUTPUT\n");
+        matMul(g2, w3, g3);
+        // matPrint(g3);
+        // printf("RESULT AFTER SOFTMAX\n");
+        matSoftmax(g3);
+        // matPrint(g3);
 
         //---------------------------------
         // Evaluate result
         //---------------------------------
 
         printf("Evaluate:\n");
-        score = evaluate(g2, y);
+        score = evaluate(g3, y);
         printf("ACCURACY:  %f\n", score);
 
         // Backward pass
 
         // delta
         // printf("DELTA OUTPUT\n");
-        matSum(g2, minus_y, d2);
+        matSum(g3, minus_y, d3);
         // matPrint(d2);
 
         // Push one layer back
+        Matrix *w3t = genTransposed(w3);
+        // printf("TRANSPOSED WEIGHTS LAYER2->OUT\n");
+        // matPrint(w3t);
+        matMul(d3, w3t, d2);
+        // printf("DELTA_A LAYER 2\n");
+        // matPrint(d2);
+        matReluBack(g2);
+        // printf("RELU BACKWARD MASK\n");
+        // matPrint(g2);
+        // printf("DELTA LAYER 2");
+        matElMul(d2, g2, d2);
+        // matPrint(d2);
+        freeMatrix(w3t);
+
+        // Push one layer back
         Matrix *w2t = genTransposed(w2);
-        // printf("TRANSPOSED WEIGHTS LAYER1->OUT\n");
+        // printf("TRANSPOSED WEIGHTS LAYER_1->LAYER_2\n");
         // matPrint(w2t);
         matMul(d2, w2t, d1);
         // printf("DELTA_A LAYER 1\n");
@@ -168,34 +195,45 @@ void fit(float *data_X, float *data_Y, int len, float eps, float learning_rate, 
         // matPrint(d1);
         freeMatrix(w2t);
 
-
+        Matrix *g2t = genTransposed(g2);
         Matrix *g1t = genTransposed(g1);
         Matrix *g0t = genTransposed(g0);
 
         // Sum weights
         // printf("OLD W INPUT-> LAYER_1\n");
         // matPrint(w1);
-        // printf("OLD W LAYER_1 -> OUTPUT\n");
+        // printf("OLD W LAYER_1 -> LAYER_2\n");
         // matPrint(w2);
+        // printf("OLD W LAYER_2 -> OUTPUT\n");
+        // matPrint(w3);
+
 
         // printf("dW INPUT -> LAYER_1\n");
         matMul(g0t, d1, dw1);      
         // matPrint(dw1);
-        // printf("dW LAYER_1 -> OUT\n");
+        // printf("dW LAYER_1 -> LAYER_2\n");
         matMul(g1t, d2, dw2);
         // matPrint(dw2);
+        // printf("dW LAYER_2 -> LAYER_3\n");
+        matMul(g2t, d3, dw3);
+        // matPrint(dw3);
 
-        matScalarMul(dw2, -0.1/(float) len);
-        matScalarMul(dw1, -0.1/(float) len);
+        matScalarMul(dw3, -0.01/(float) len);
+        matScalarMul(dw2, -0.01/(float) len);
+        matScalarMul(dw1, -0.01/(float) len);
         
         // printf("UPDATE_WEIGHTS\n");
         // printf("W1 INPUT->LAYER_1\n");
         matSum(w1, dw1, w1);
         // matPrint(w1);  
-        // printf("W2 LAYER_1->OUTPUT\n");
+        // printf("W2 LAYER_1->LAYER_2\n");
         matSum(w2, dw2, w2);
         // matPrint(w2);
+        // printf("W2 LAYER_2->OUTPUT\n");
+        matSum(w3, dw3, w3);
+        // matPrint(w3);
 
+        freeMatrix(g2t);
         freeMatrix(g1t);
         freeMatrix(g0t);
     }

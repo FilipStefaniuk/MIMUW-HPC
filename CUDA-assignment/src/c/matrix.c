@@ -39,15 +39,22 @@ void matReluBack(Matrix *A) {
 
 void matSoftmax(Matrix *A) {
     for (int i = 0; i < A->height; ++i) {
-        float sum = 0.0f;
         
+        float m = A->elements[A->width * i];
         for (int j = 0; j < A->width; ++j) {
-            sum += expf(A->elements[A->width * i + j]);
+            if (A->elements[A->width * i + j] > m) {
+                m = A->elements[A->width * i + j];
+            }
+        }
+
+        float sum = 0.0f;
+        for (int j = 0; j < A->width; ++j) {
+            sum += expf(A->elements[A->width * i + j] - m);
         }
 
         for (int j = 0; j < A->width; ++j) {
             A->elements[A->width * i + j] 
-                = expf(A->elements[A->width * i + j]) / sum;
+                = expf(A->elements[A->width * i + j] - m - logf(sum));
         }
     }
 }
