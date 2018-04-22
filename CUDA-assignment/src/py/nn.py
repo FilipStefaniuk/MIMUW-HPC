@@ -1,18 +1,33 @@
 import ctypes
 
+
+def normalize(data):
+
+    maxes = [0]*len(data[0])
+    mins = [250]*len(data[0])
+
+    for row in data:
+        for i, val in enumerate(row):
+            maxes[i] = max([maxes[i], val])
+            mins[i] = min([mins[i], val])
+
+    return [[(val - mins[i])/(0.00001 + maxes[i] - mins[i]) for i, val in enumerate(row)] for row in data]
+
+
 def fit(data_X, data_Y, **kwargs):
 
-    size = 100#len(data_Y)
-    data_YY = []
-    data_XX = [row[:20] for row in data_X]
+    size = 150
 
-    for x in data_Y:
-        tmp = [0]*62
-        tmp[x] = 1
-        data_YY.append(tmp)
-    
-    data_X = [x for row in data_XX for x in row]
-    data_Y = [x for row in data_YY for x in row]
+    data_X = data_X[:size]
+    data_Y = data_Y[:size]
+
+    data_X  = normalize(data_X)
+    # print(data_X)
+
+    data_Y = [[1 if x == i else 0 for i in range(62)] for x in data_Y]
+
+    data_X = [row[i] for i in range(4096) for row in data_X]
+    data_Y = [row[i] for i in range(62) for row in data_Y]
 
     c_data_X = (ctypes.c_float * len(data_X))(*data_X)
     c_data_Y = (ctypes.c_float * len(data_Y))(*data_Y)
