@@ -134,7 +134,7 @@ void computeGPUglobalMem(Matrix *A, Matrix *B, Matrix *C) {
     cudaEventCreate(&stop);
     
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
-    dim3 dimGrid(B->width / dimBlock.x + 1, A->height / dimBlock.y + 1);
+    dim3 dimGrid(B->width / dimBlock.x, A->height / dimBlock.y);
     
     cudaEventRecord(start, 0);
     matMulGPU1<<<dimGrid, dimBlock>>>(dev_A, dev_B, dev_C);

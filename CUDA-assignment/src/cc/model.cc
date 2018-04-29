@@ -1,110 +1,129 @@
+#include <iostream>
+#include <string>
 #include "model.hh"
-#include <vector>
-#include <stdio.h>
-#include <stdlib.h>
+#include "layers/input.hh"
+#include "initializers/buffer_initializer.hh"
+#include "initializers/random_initializer.hh"
+#include "initializers/const_initializer.hh"
 
-Model::Model(Matrix *input, Matrix *output)
- : input(input), output(output), layers(),
-   gs(), gsT(), ds() {}
+#ifndef NDEBUG
+    const bool debug = true;
+#else
+    const bool debug = false;
+#endif
 
-
-void Model::add(Layer *layer) {
-    layers.push_back(layer);
+Model::Model(int input_size, int output_size, int batch_size) 
+    : input(input_size, batch_size),
+      output(output_size, batch_size),
+      delta(output_size, batch_size) {
+        layers.push_back(new Input(input_size, batch_size));
 }
 
-void Model::build() {
-    
-    unsigned input_size = input->height;
-    gs.push_back(this->input);
-    ds.push_back(genMatrix(input_size, input->width, 0));
-    gsT.push_back(genMatrix(input->width, input_size, 0));
-    
-    for (Layer *layer : layers) {
-        
-        layer->build(input_size);
-
-        input_size = layer->getSize();
-
-        gs.push_back(genMatrix(input_size, input->width, 0));
-        ds.push_back(genMatrix(input_size, input->width, 0));
-        gsT.push_back(genMatrix(input->width, input_size, 0));
+Model::~Model() {
+    for (Layer *layer : this->layers) {
+        delete layer;
     }
 }
 
-double Model::evaluate(Matrix *pred_val, Matrix *true_val) {
+// float Model::evaluate(Matrix &pred_val, Matrix &true_val) {
 
-    int correct_preds = 0;
+//     int correct_preds = 0;
 
-    for (int i = 0; i < pred_val->width; ++i) {
+//     for (int i = 0; i < pred_val.width; ++i) {
         
-        float max_pred = pred_val->elements[i];
-        float max_true = true_val->elements[i];
-        int arg_max_pred = 0, arg_max_true = 0;
+//         float max_pred = pred_val.elements[i];
+//         float max_true = true_val.elements[i];
+//         int arg_max_pred = 0, arg_max_true = 0;
         
-        for(int j = 0; j < pred_val->height; ++j) {
-            if (pred_val->elements[pred_val->width * j + i] > max_pred) {
-                max_pred = pred_val->elements[pred_val->width * j + i];
-                arg_max_pred = j;
-            }
+//         for(int j = 0; j < pred_val.height; ++j) {
+//             if (pred_val.elements[pred_val.width * j + i] > max_pred) {
+//                 max_pred = pred_val.elements[pred_val.width * j + i];
+//                 arg_max_pred = j;
+//             }
 
-            if (true_val->elements[true_val->width * j + i] > max_true) {
-                max_true = true_val->elements[true_val->width * j + i];
-                arg_max_true = j;
-            }        
-        }
+//             if (true_val.elements[true_val.width * j + i] > max_true) {
+//                 max_true = true_val.elements[true_val.width * j + i];
+//                 arg_max_true = j;
+//             }        
+//         }
 
-        if (arg_max_pred == arg_max_true) {
-            correct_preds += 1;
-        }
+//         if (arg_max_pred == arg_max_true) {
+//             correct_preds += 1;
+//         }
+//     }
+
+//     return ((float) correct_preds) / pred_val.width;
+// }
+
+void Model::fit(float *data_x, float *data_y, int epochs, float learning_rate, float eps, int random) {
+    
+
+    // Initialization
+    //-------------------------------------------------------------------------
+    Initializer *initializer;
+    BufferInitializer data_X(data_x), data_Y(data_y);
+    
+    initializer = random ? (Initializer*) new RandomInitializer() : (Initializer*) new ConstInitializer(0.5f);
+
+    this->input.initialize(data_X);
+    this->output.initialize(data_Y);
+
+    for (auto it = std::next(this->layers.begin()); it != this->layers.end(); ++it) {
+        (*it)->initialize(*initializer);
     }
 
-    return ((double) correct_preds) / pred_val->width;
-}
+    delete initializer;
 
-void Model::fit(unsigned epochs, float learning_rate, float eps) {
-    
     for (int i = 0; i < epochs; ++i) {
-        
-        printf("Epoch %d\n", i);
-        
-        // Forward Pass
-        // printf("--- FORWARD PASS ---\n");
-        for (int j = 0; j < layers.size(); ++j) {
-            // printf("LAYER: %d\n", j);
-            layers[j]->forward_pass(gs[j], gs[j + 1]);
-            // matPrint(gs[j + 1]);
-            // matPrintSize(gs[j + 1]);
+
+        std::cout << "EPOCH: " << i << std::endl;
+    
+        // Forward pass
+        //-------------------------------------------------------------------------
+        Matrix *input = &this->input;
+        for (Layer *layer : this->layers) {
+            input = &layer->forward_pass(*input);
         }
 
-        for (int j = 0; j < gs.size(); ++j) {
-            matTranspose(gs[j], gsT[j]);
+        // Loss Function
+        //-------------------------------------------------------------------------
+        double cost = Matrix::cost(*input, this->output);
+        Matrix::matSub(*input, this->output, this->delta);
+
+        // std::cout << "Model::fit: pred_vals" << std::endl;
+        // std::cout << input->toString() << std::endl;
+        // std::cout << "Model::fit: true_vals" << std::endl;
+        // std::cout << this->output.toString() << std::endl;
+        std::cout << "Model::fit: cost: " << cost << std::endl;
+        // std::cout << "Model::fit: delta" << std::endl;
+        // std::cout << this->delta.toString() << std::endl;
+        // std::cout << std::endl;
+
+        // Backward pass
+        //-------------------------------------------------------------------------
+        Matrix *delta = &this->delta;
+        for (auto it = this->layers.rbegin(); it != this->layers.rend(); ++it) {
+            delta = &(*it)->backward_pass(*delta);
         }
 
-        // Evaluate
-        printf("--- EVALUATE ---\n");
-        // matPrint(gs[gs.size() - 1]);
-        // matPrint(output);
-        double accuracy = evaluate(gs[gs.size() - 1], output);
-        printf("ACCURACY: %f\n", accuracy);
-
-        // Derrivative of cost function
-        // printf("--- DELTA ---\n");
-        matSub(gs[gs.size() - 1], output, ds[ds.size() - 1]);
-        // matPrint(ds[ds.size() - 1]);
-
-        // Backward Pass
-        // printf("--- BACKWARD PASS ---\n");
-        for (int j = layers.size() - 1; j >= 0; --j) {
-            // printf("LAYER %d\n", j);
-            layers[j]->backward_pass(ds[j + 1], gs[j + 1], ds[j]);
-            // matPrint(ds[j]);
-        }
-
-        // printf("----- UPDATE WEIGHTS ------\n");
-
-        for (int j = 0; j < layers.size(); ++j) {
-            layers[j]->update_weights(gsT[j], ds[j + 1], 
-                    learning_rate/(float)this->input->height);
+        // Update Weights
+        //-------------------------------------------------------------------------
+        for (Layer * layer : this->layers) {
+            layer->update(learning_rate);
         }
     }
+}
+
+void Model::summary() {
+
+    std::cout << std::string(40, '*') << std::endl;
+    std::cout << std::string(10, ' ') << "Model Summary" << std::endl;
+    std::cout << std::string(40, '*') <<std::endl;
+
+    for (Layer *layer : this->layers) {
+        std::cout << layer->info() << std::endl;
+        std::cout << std::string(40, '-') << std::endl;
+    }
+
+    std::cout << std::endl;
 }
