@@ -3,7 +3,7 @@
 #include "src/cc/layers/relu.hh"
 #include "src/cc/layers/tanh.hh"
 #include "src/cc/layers/softmax.hh"
-#include "src/cc/layers/sigmoid.hh"
+// #include "src/cc/layers/sigmoid.hh"
 #include "src/cc/initializers/random_initializer.hh"
 #include "src/cc/initializers/buffer_initializer.hh"
 
@@ -11,7 +11,7 @@
 #define BATCH_SIZE 128 //4608 // 4591// 32
 
 #define INPUT 4096
-#define LAYER_1 512 //8192
+#define LAYER_1 128 //8192
 #define LAYER_2 6144
 #define LAYER_3 3072
 #define LAYER_4 1024
