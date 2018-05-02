@@ -1,48 +1,43 @@
 #ifndef __MATRIX_HH__
 #define __MATRIX_HH__
 
-#include "../initializers/initializer.hh"
 #include <iostream>
 #include <string>
+
+#define BLOCK_SIZE 32
+#define BLOCK_ROUND_UP(x) ((x + BLOCK_SIZE-1) & (~(BLOCK_SIZE-1))) 
+
+#define LEFT_T 1
+#define RIGHT_T 2
 
 class Matrix {
 
     private:
+    
+        int rows, cols;
 
     public:
-        int rows, cols;
+
         float *buff;
+        
         Matrix(int rows, int cols);
-        // Matrix(int rows, int cols, float *buff);
         ~Matrix();
 
-        static void matMul(Matrix const &A, Matrix const &B, Matrix &C);
-        static void matMulT0(Matrix const &A, Matrix const &B, Matrix &C);
-        static void matMulT1(Matrix const &A, Matrix const &B, Matrix &C);
-        // static void matSum(Matrix const &A, Matrix const &B, Matrix &C);
+        int size() const { return this->rows * this->cols; }
+        int getRows() const { return this->rows; }
+        int getCols() const { return this->cols; }
+
+        void init();
+        void init(float val);
+        void init(float *buff);
+
+        static void matMul(Matrix const &A, Matrix const &B, Matrix &C, int mode);
+
         static void matSub(Matrix const &A, Matrix const &B, Matrix &C);
-        static void matElMul(Matrix const &A, Matrix const &B, Matrix &C);
-        static void matScalarMul(float const x, Matrix const &A, Matrix &B);
-        // static void matT(Matrix const &A, Matrix &B);
         
-        static void matReLU(Matrix const &A, Matrix &B);
-        static void matTanh(Matrix const &A, Matrix &B);
-        // static void matSigmoid(Matrix const &A, Matrix &B);
-        // static void matSigmoidPrime(Matrix const &A, Matrix &B);
-        static void matTanhPrime(Matrix const &A, Matrix &B);
-        static void matReLUPrime(Matrix const &A, Matrix &B);
-        static void matColSoftmax(Matrix const &A, Matrix &B);
-
-        // static float cost(Matrix const &A, Matrix const &B);
-
-        // void initialize(Initializer &initializer);
-        void initialize();
-        void initialize(float *buff);
-
-        int size() const;
-        int getRows() const;
-        int getCols() const;
-
+        static void matElMul(Matrix const &A, Matrix const &B, Matrix &C);
+        static void matElMul(float const x, Matrix const &A, Matrix &B);
+        
         bool operator==(Matrix const &other) const;
 
         std::string toString() const;

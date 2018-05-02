@@ -19,13 +19,11 @@ class Model {
 
         Model(int input_size, int output_size, int batch_size) 
             : input(input_size, batch_size),
-            output(output_size, batch_size),
-            delta(output_size, batch_size),
-            batch_size(batch_size),
-            input_size(input_size),
-            output_size(output_size) {
-                layers.push_back(new Input(input_size, batch_size));
-        }
+              output(output_size, batch_size),
+              delta(output_size, batch_size),
+              batch_size(batch_size),
+              input_size(input_size),
+              output_size(output_size) {layers.push_back(new Input(input_size, batch_size));}
 
         ~Model() {
             for (Layer *layer : this->layers) {
@@ -39,8 +37,8 @@ class Model {
         }       
 
         void fit(float *data_x, float *data_y, int len, int epochs, float learning_rate, float eps, int random);
-        void summary() {
 
+        void summary() {
             std::cout << std::string(40, '*') << std::endl;
             std::cout << std::string(10, ' ') << "Model Summary" << std::endl;
             std::cout << std::string(40, '*') <<std::endl;
@@ -49,10 +47,12 @@ class Model {
                 std::cout << layer->info() << std::endl;
                 std::cout << std::string(40, '-') << std::endl;
             }
-
             std::cout << std::endl;
         }
 
+        static float crossEntropyCost(Matrix &pred_vals, Matrix &true_vals);
+        
+        static float accuracy(Matrix &pred_vals, Matrix &true_vals);
 };
 
 #endif

@@ -24,24 +24,24 @@ class Dense : public Layer {
         ~Dense() {}
 
         void initialize(int flag) {
-            this->weights.initialize();
+            this->weights.init();
         }
 
         Matrix& forward_pass(Matrix &input) {
             this->inputT = &input;
-            Matrix::matMul(this->weights, input, this->output);
+            Matrix::matMul(this->weights, input, this->output, 0);
             return this->output;
         }
 
         Matrix& backward_pass(Matrix &input) {
             this->d = &input;
-            Matrix::matMulT0(weights, input, this->delta);
+            Matrix::matMul(weights, input, this->delta, LEFT_T);
             return this->delta;
         }
 
         void update(float lr) {
-            Matrix::matMulT1(*(this->d), *(this->inputT), this->dweights);
-            Matrix::matScalarMul(lr, this->dweights, this->dweights);
+            Matrix::matMul(*(this->d), *(this->inputT), this->dweights, RIGHT_T);
+            Matrix::matElMul(lr, this->dweights, this->dweights);
             Matrix::matSub(this->weights, this->dweights, this->weights);
         }
 
