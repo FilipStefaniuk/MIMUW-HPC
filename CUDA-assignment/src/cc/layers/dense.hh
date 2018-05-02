@@ -26,7 +26,8 @@ class Dense : public Layer {
         ~Dense() {}
 
         virtual void initialize(Initializer &initializer) {
-            this->weights.initialize(initializer);
+            this->weights.initialize();
+
             // Matrix::matT(this->weights, this->weightsT);
         }
 

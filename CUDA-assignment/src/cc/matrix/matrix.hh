@@ -19,23 +19,24 @@ class Matrix {
         static void matMul(Matrix const &A, Matrix const &B, Matrix &C);
         static void matMulT0(Matrix const &A, Matrix const &B, Matrix &C);
         static void matMulT1(Matrix const &A, Matrix const &B, Matrix &C);
-        static void matSum(Matrix const &A, Matrix const &B, Matrix &C);
+        // static void matSum(Matrix const &A, Matrix const &B, Matrix &C);
         static void matSub(Matrix const &A, Matrix const &B, Matrix &C);
         static void matElMul(Matrix const &A, Matrix const &B, Matrix &C);
-        static void matScalarMul(float const x, Matrix const &A, Matrix &B);
-        static void matT(Matrix const &A, Matrix &B);
+        // static void matScalarMul(float const x, Matrix const &A, Matrix &B);
+        // static void matT(Matrix const &A, Matrix &B);
         
         static void matReLU(Matrix const &A, Matrix &B);
         static void matTanh(Matrix const &A, Matrix &B);
-        static void matSigmoid(Matrix const &A, Matrix &B);
-        static void matSigmoidPrime(Matrix const &A, Matrix &B);
+        // static void matSigmoid(Matrix const &A, Matrix &B);
+        // static void matSigmoidPrime(Matrix const &A, Matrix &B);
         static void matTanhPrime(Matrix const &A, Matrix &B);
         static void matReLUPrime(Matrix const &A, Matrix &B);
         static void matColSoftmax(Matrix const &A, Matrix &B);
 
-        static float cost(Matrix const &A, Matrix const &B);
+        // static float cost(Matrix const &A, Matrix const &B);
 
-        void initialize(Initializer &initializer);
+        // void initialize(Initializer &initializer);
+        void initialize();
         void initialize(float *buff);
 
         int size() const;

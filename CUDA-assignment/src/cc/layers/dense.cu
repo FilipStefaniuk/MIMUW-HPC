@@ -48,6 +48,6 @@ void Dense::update(float lr) {
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
     dim3 dimGrid(BLOCK_ROUND_UP(this->dweights.cols) / dimBlock.x, BLOCK_ROUND_UP(this->dweights.rows) / dimBlock.y);
 
-    matMulUpdateCUDA<<<dimGrid, dimBlock>>>(this->d->buff, this->inputT->buff, this->dweights.buff, this->d->rows, this->inputT->rows, this->inputT->cols, lr);
+    matMulUpdateCUDA<<<dimGrid, dimBlock>>>(this->d->buff, this->inputT->buff, this->dweights.buff, BLOCK_ROUND_UP(this->d->rows), BLOCK_ROUND_UP(this->inputT->rows), BLOCK_ROUND_UP(this->inputT->cols), lr);
     Matrix::matSub(this->weights, this->dweights, this->weights);
 };

@@ -50,10 +50,10 @@ float accuracy(Matrix &pred_vals, Matrix &true_vals) {
     dim3 dimBlock(BLOCK_SIZE);
     dim3 dimGrid(BLOCK_ROUND_UP(pred_vals.cols) / BLOCK_SIZE);
     
-    cudaMalloc((void**)&dev_correct, pred_vals.cols * sizeof(int));
+    cudaMalloc((void**)&dev_correct, BLOCK_ROUND_UP(pred_vals.cols) * sizeof(int));
     
     accuracyCUDA<<<dimGrid, dimBlock>>>
-    (pred_vals.buff, true_vals.buff, dev_correct, pred_vals.rows, pred_vals.cols);
+    (pred_vals.buff, true_vals.buff, dev_correct, pred_vals.rows, BLOCK_ROUND_UP(pred_vals.cols));
     
     cudaMemcpy(correct, dev_correct, pred_vals.cols * sizeof(int), cudaMemcpyDeviceToHost);
     
@@ -96,10 +96,10 @@ float crossEntropyCost(Matrix &pred_vals, Matrix &true_vals) {
     dim3 dimBlock(BLOCK_SIZE);
     dim3 dimGrid(BLOCK_ROUND_UP(pred_vals.cols) / BLOCK_SIZE);
 
-    cudaMalloc((void**)&dev_cost, pred_vals.cols * sizeof(int));
+    cudaMalloc((void**)&dev_cost, BLOCK_ROUND_UP(pred_vals.cols) * sizeof(int));
 
     crossEntropyCostCUDA<<<dimGrid, dimBlock>>>
-    (pred_vals.buff, true_vals.buff, dev_cost, pred_vals.rows, pred_vals.cols);
+    (pred_vals.buff, true_vals.buff, dev_cost, pred_vals.rows, BLOCK_ROUND_UP(pred_vals.cols));
 
     cudaMemcpy(cost, dev_cost, pred_vals.cols * sizeof(int), cudaMemcpyDeviceToHost);
 
@@ -165,8 +165,8 @@ void Model::fit(float *data_x, float *data_y, int len,  int epochs,
             
         // std::cout << "Model::fit: tmp cost: " << tmp_cost << std::endl;
         // if (i == 99) {
-            // std::cout << "Model::fit: pred_vals" << std::endl;
-            // std::cout << input->toString() << std::endl;
+        // std::cout << "Model::fit: pred_vals" << std::endl;
+        // std::cout << input->toString() << std::endl;
         // }
             // std::cout << "Model::fit: true_vals" << std::endl;
             // std::cout << this->output.toString() << std::endl;

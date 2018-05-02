@@ -13,7 +13,7 @@ class Input : public Layer {
         ~Input() {};
 
         virtual void initialize(Initializer &initializer) {
-            this->output.initialize(initializer);
+            // this->output.initialize(initializer);
         }
 
         virtual Matrix & forward_pass(Matrix &input) {
