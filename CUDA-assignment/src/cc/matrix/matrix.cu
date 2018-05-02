@@ -112,22 +112,20 @@ void Matrix::matElMul(Matrix const &A, Matrix const &B, Matrix &C) {
     matElMulCUDA<<<dimGrid, dimBlock>>>(A.buff, B.buff, C.buff, BLOCK_ROUND_UP(A.rows), BLOCK_ROUND_UP(A.cols));
 }
 
-// __global__ void matScalarMulCUDA(float const e, float *A, float *B, int M, int N) {
+__global__ void matScalarMulCUDA(float const e, float *A, float *B, int M, int N) {
     
-//     int y = blockIdx.y * blockDim.y + threadIdx.y;
-//     int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
 
-//     if (y < M && x < N) {
-//         B[y * N + x] = e * A[y * N + x];
-//     }
-// }
+    B[y * N + x] = e * A[y * N + x];
+}
 
-// void Matrix::matScalarMul(float const x, Matrix const &A, Matrix &B) {
-//     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
-//     dim3 dimGrid(BLOCK_ROUND_UP(B.cols) / dimBlock.x, BLOCK_ROUND_UP(A.rows) / dimBlock.y);
+void Matrix::matScalarMul(float const x, Matrix const &A, Matrix &B) {
+    dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
+    dim3 dimGrid(BLOCK_ROUND_UP(B.cols) / dimBlock.x, BLOCK_ROUND_UP(A.rows) / dimBlock.y);
 
-//     matScalarMulCUDA<<<dimGrid, dimBlock>>>(x, A.buff, B.buff, A.rows, A.cols);
-// }
+    matScalarMulCUDA<<<dimGrid, dimBlock>>>(x, A.buff, B.buff, BLOCK_ROUND_UP(A.rows), BLOCK_ROUND_UP(A.cols));
+}
 
 // __global__ void matTCUDA(float *A, float *B, int M, int N) {
     

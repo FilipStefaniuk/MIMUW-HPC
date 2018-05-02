@@ -130,7 +130,7 @@ void Model::fit(float *data_x, float *data_y, int len,  int epochs,
     this->output.initialize(data_y);
 
     for (auto it = std::next(this->layers.begin()); it != this->layers.end(); ++it) {
-        (*it)->initialize(*initializer);
+        (*it)->initialize(1);
     }
 
     delete initializer;

@@ -35,7 +35,7 @@ int main() {
     Model model(INPUT, OUTPUT, BATCH_SIZE);
     
     model.add<Dense>(LAYER_1);
-    model.add<Tanh>();
+    model.add<ReLU>();
     // model.add<Dense>(LAYER_2);
     // model.add<Tanh>();
     // model.add<Dense>(LAYER_3);

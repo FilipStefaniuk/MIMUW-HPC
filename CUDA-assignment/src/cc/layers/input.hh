@@ -12,31 +12,13 @@ class Input : public Layer {
 
         ~Input() {};
 
-        virtual void initialize(Initializer &initializer) {
-            // this->output.initialize(initializer);
-        }
-
         virtual Matrix & forward_pass(Matrix &input) {
-            // std::cout << input.toString() << std::endl;
             return input;
         }
 
         virtual Matrix& backward_pass(Matrix &input) {
             return input;
         }
-
-        // Input(Layer &prev) 
-            // : Layer(1, 1) {this->name = "INPUT";}
-        
-
-        // virtual Matrix& build(Matrix &input);
-
-        // virtual Matrix& forward_pass();
-        
-        // virtual void backward_pass(Matrix &output);
-
-        // unsigned getSize();
-
 };
 
 #endif

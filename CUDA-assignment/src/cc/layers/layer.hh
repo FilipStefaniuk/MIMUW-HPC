@@ -7,7 +7,9 @@
 #include <sstream>
 #include <string>
 #include "../matrix/matrix.hh"
-#include "../initializers/initializer.hh"
+
+#define RANDOM_INIT 0x00
+#define ONES_INIT   0x01
 
 class Layer {
 
@@ -24,7 +26,9 @@ class Layer {
               name(name) {}
 
         Layer(Layer &prev, std::string name)
-            : Layer(prev.getOutput().getRows(), prev.getOutput().getRows(), prev.getOutput().getCols(), name) {}
+            : Layer(prev.getOutput().getRows(), 
+              prev.getOutput().getRows(), 
+              prev.getOutput().getCols(), name) {}
         
         virtual ~Layer() {};
 
@@ -39,17 +43,14 @@ class Layer {
             return ss.str();
         }
 
-        virtual void initialize(Initializer &initializer) {};
+        virtual void initialize(int flag) {};
         
         virtual Matrix & forward_pass(Matrix &input)=0;
 
         virtual Matrix & backward_pass(Matrix &output)=0;
 
-        virtual void update(float learning_rate) {};
+        virtual void update(float lr) {};
 
-        // unsigned getSize();
-
-        // void setSize(unsigned size);
 
 };
 

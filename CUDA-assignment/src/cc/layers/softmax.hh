@@ -12,30 +12,11 @@ class Softmax : public Layer {
 
         ~Softmax() {}
 
-        virtual Matrix & forward_pass(Matrix &input) {
-
-            // std::cout << "Softmax:: forward_pass:input" << std::endl;
-            // std::cout << input.toString() << std::endl;
-            
-            Matrix::matColSoftmax(input, this->output);
-            
-            // std::cout << "Softmax:: forward_pass:output" << std::endl;
-            // std::cout << this->output.toString() << std::endl;
-
-            return this->output;
-        }
+        virtual Matrix & forward_pass(Matrix &input);
 
         virtual Matrix& backward_pass(Matrix &input) {
             return input;
         }
-
-        // virtual Matrix& build(Matrix &input);
-
-        // virtual Matrix& forward_pass();
-        
-        // virtual void backward_pass(Matrix &output);
-
-        // std::string info();
 };
 
 #endif

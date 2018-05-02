@@ -22,7 +22,7 @@ class Matrix {
         // static void matSum(Matrix const &A, Matrix const &B, Matrix &C);
         static void matSub(Matrix const &A, Matrix const &B, Matrix &C);
         static void matElMul(Matrix const &A, Matrix const &B, Matrix &C);
-        // static void matScalarMul(float const x, Matrix const &A, Matrix &B);
+        static void matScalarMul(float const x, Matrix const &A, Matrix &B);
         // static void matT(Matrix const &A, Matrix &B);
         
         static void matReLU(Matrix const &A, Matrix &B);
