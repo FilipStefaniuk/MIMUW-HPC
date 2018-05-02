@@ -1,4 +1,21 @@
 // #include "dense.hh"
+
+// void Dense::update(float learning_rate) {
+//     // std::cout << "Dense::update: weights" << std::endl;
+//     // std::cout << this->weights.toString() << std::endl;
+
+//     Matrix::matMul(*(this->d), this->inputT, this->dweights);
+//     Matrix::matScalarMul(learning_rate, this->dweights, this->dweights);
+//     Matrix::matSub(this->weights, this->dweights, this->weights);
+//     Matrix::matT(this->weights, this->weightsT);
+
+//     // std::cout << "Dense::update: dweights" << std::endl;
+//     // std::cout << this->dweights.toString() << std::endl;
+//     // std::cout << "Dense::update: weights" << std::endl;
+//     // std::cout << this->weights.toString() << std::endl;
+// };
+
+
 // #include <sstream>
 
 // #ifndef NDEBUG
@@ -37,7 +54,7 @@
     // }
 
     // return Layer::forward_pass();
-}
+// }
 
 // void Dense::backward_pass(Matrix &output) {
 

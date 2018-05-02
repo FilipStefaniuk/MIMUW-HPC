@@ -11,13 +11,13 @@ int main() {
         std::cout << "---------------------" << std::endl;
 
         float buffA[] = {1., 3., 5., 7., 2., 4., 6., 8.}; 
-        float buffB[] = {1., 8., 9., 2., 7., 10., 3., 6., 11., 4., 5., 12.};
-        float buffC[] = {50., 94., 178., 60., 120., 220.};
+        float buffB[] = {1., 8., 9., 0., 2., 7., 10., 0., 3., 6., 11., 0., 4., 5., 12., 0.};
+        float buffC[] = {50., 94., 178., 0., 60., 120., 220., 0.};
 
         Matrix A(2, 4);
-        Matrix B(4, 3);
-        Matrix C(2, 3);
-        Matrix D(2, 3);
+        Matrix B(4, 4);
+        Matrix C(2, 4);
+        Matrix D(2, 4);
 
         A.initialize(buffA);
         B.initialize(buffB);
@@ -30,6 +30,65 @@ int main() {
 
         // std::cout << C.toString() << std::endl;
         // std::cout << D.toString() << std::endl;        
+
+        assert(C == D);
+        std::cout << OK << std::endl;       
+    }
+
+    {
+        std::cout << "MATRIX T LEFT MULTIPLICATION" << std::endl;
+        std::cout << "---------------------" << std::endl;
+
+        float buffA[] = {1., 2., 3., 4., 5., 6., 7., 8.,};
+        float buffB[] = {1., 8., 9., 0., 2., 7., 10., 0., 3., 6., 11., 0., 4., 5., 12., 0.};
+        float buffC[] = {50., 94., 178., 0., 60., 120., 220., 0.};
+
+        Matrix A(4, 2);
+        Matrix B(4, 4);
+        Matrix C(2, 4);
+        Matrix D(2, 4);
+
+        A.initialize(buffA);
+        B.initialize(buffB);
+        C.initialize(buffC);
+
+        std::cout << A.toString() << std::endl;
+        std::cout << B.toString() << std::endl;
+
+        Matrix::matMulT0(A, B, D);
+
+        std::cout << C.toString() << std::endl;
+        std::cout << D.toString() << std::endl;        
+
+        assert(C == D);
+        std::cout << OK << std::endl;       
+    }
+
+    {
+        std::cout << "MATRIX T RIGHT MULTIPLICATION" << std::endl;
+        std::cout << "---------------------" << std::endl;
+
+        float buffA[] = {1., 3., 5., 7., 2., 4., 6., 8.}; 
+        float buffB[] = {1., 2., 3., 4., 8., 7., 6., 5., 9., 10., 11., 12., 0., 0., 0., 0};
+        float buffC[] = {50., 94., 178., 0., 60., 120., 220., 0.};
+
+
+        Matrix A(4, 2);
+        Matrix B(4, 4);
+        Matrix C(2, 4);
+        Matrix D(2, 4);
+
+        A.initialize(buffA);
+        B.initialize(buffB);
+        C.initialize(buffC);
+
+        std::cout << A.toString() << std::endl;
+        std::cout << B.toString() << std::endl;
+
+        Matrix::matMulT1(A, B, D);
+
+        std::cout << C.toString() << std::endl;
+        std::cout << D.toString() << std::endl;        
 
         assert(C == D);
         std::cout << OK << std::endl;       

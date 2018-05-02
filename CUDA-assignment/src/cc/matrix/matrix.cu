@@ -1,10 +1,8 @@
 #include <sstream>
 #include <iomanip>
 #include "matrix.hh"
+#include "matmul.cuh"
 
-#define BLOCK_SIZE 32
-#define BLOCK_ROUND_DOWN(x) (x & (~(BLOCK_SIZE-1)))
-#define BLOCK_ROUND_UP(x) ((x + BLOCK_SIZE-1) & (~(BLOCK_SIZE-1))) 
 
 
 Matrix::Matrix(int rows, int cols) : rows(rows), cols(cols) {
@@ -20,52 +18,6 @@ Matrix::~Matrix() {
     cudaFree(this->buff);
 }
 
-__global__
-void matMulCUDA(float *A, float *B, float *C, int M, int N, int K) {
-
-    float Cvalue = 0.0f;
-    int a = K % BLOCK_SIZE;
-    int b = BLOCK_ROUND_DOWN(K);
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-
-    __shared__ float A_shared[BLOCK_SIZE][BLOCK_SIZE];
-    __shared__ float B_shared[BLOCK_SIZE][BLOCK_SIZE];
-    
-    for(int i = 0; i < BLOCK_ROUND_DOWN(K); i+= BLOCK_SIZE) {
-
-        A_shared[threadIdx.y][threadIdx.x] = A[K * y + i + threadIdx.x];        
-        B_shared[threadIdx.y][threadIdx.x] = B[(i + threadIdx.y) * N + x];
-
-        __syncthreads();
-
-        #pragma unroll
-        for(int j = 0; j < BLOCK_SIZE; ++j) {
-            Cvalue += A_shared[threadIdx.y][j] * B_shared[j][threadIdx.x];
-        }
-
-        __syncthreads();
-    }
-
-    if (a) {
-
-        A_shared[threadIdx.y][threadIdx.x] = threadIdx.x < a ? A[K * y + b + threadIdx.x] : 0;        
-        B_shared[threadIdx.y][threadIdx.x] = threadIdx.y < a ? B[(b + threadIdx.y) * N + x] : 0;
-
-        __syncthreads();
-
-        #pragma unroll
-        for(int j = 0; j < BLOCK_SIZE; ++j) {
-            Cvalue += A_shared[threadIdx.y][j] * B_shared[j][threadIdx.x];
-        }
-
-        __syncthreads();
-    }
-
-    if (y < M && x < N) {    
-        C[y * N + x] = Cvalue;
-    }
-}
 
 // __global__ void matMulCUDA(float *A, float *B, float *C, int M, int N, int K) {
 
@@ -85,10 +37,32 @@ void matMulCUDA(float *A, float *B, float *C, int M, int N, int K) {
 
 void Matrix::matMul(Matrix const &A, Matrix const &B, Matrix &C) {
 
+    // cudaStreamSynchronize(0);
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
     dim3 dimGrid(BLOCK_ROUND_UP(B.cols) / dimBlock.x, BLOCK_ROUND_UP(A.rows) / dimBlock.y);
 
     matMulCUDA<<<dimGrid, dimBlock>>>(A.buff, B.buff, C.buff, A.rows, B.cols, B.rows);
+
+}
+
+void Matrix::matMulT0(Matrix const &A, Matrix const &B, Matrix &C) {
+
+    // cudaStreamSynchronize(0);
+    dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
+    dim3 dimGrid(BLOCK_ROUND_UP(B.cols) / dimBlock.x, BLOCK_ROUND_UP(A.cols) / dimBlock.y);
+
+    matMulT0CUDA<<<dimGrid, dimBlock>>>(A.buff, B.buff, C.buff, A.cols, B.cols, B.rows);
+
+}
+
+void Matrix::matMulT1(Matrix const &A, Matrix const &B, Matrix &C) {
+
+    // cudaStream  Synchronize(0);
+    dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
+    dim3 dimGrid(BLOCK_ROUND_UP(C.cols) / dimBlock.x, BLOCK_ROUND_UP(C.rows) / dimBlock.y);
+
+    matMulT1CUDA<<<dimGrid, dimBlock>>>(A.buff, B.buff, C.buff, A.rows, B.rows, B.cols);
+
 }
 
 __global__ void matSumCUDA(float *A, float *B, float *C, int M, int N) {
@@ -335,7 +309,9 @@ float Matrix::cost(Matrix const &A, Matrix const &B) {
     float sum = 0;
     for (int i = 0; i < A.cols; ++i) {
         for (int j = 0; j  < A.rows; ++j) {
-            sum += logf(tmp_A[A.cols * j + i]) * (-tmp_B[B.cols * j + i]);
+            if (tmp_B[B.cols * j + i]) {
+             sum -= logf(tmp_A[A.cols * j + i]);
+            }
         }
     }
 

@@ -13,8 +13,12 @@ class Softmax : public Layer {
         ~Softmax() {}
 
         virtual Matrix & forward_pass(Matrix &input) {
-            Matrix::matColSoftmax(input, this->output);
 
+            // std::cout << "Softmax:: forward_pass:input" << std::endl;
+            // std::cout << input.toString() << std::endl;
+            
+            Matrix::matColSoftmax(input, this->output);
+            
             // std::cout << "Softmax:: forward_pass:output" << std::endl;
             // std::cout << this->output.toString() << std::endl;
 

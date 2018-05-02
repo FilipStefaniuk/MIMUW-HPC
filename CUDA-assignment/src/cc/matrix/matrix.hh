@@ -8,15 +8,17 @@
 class Matrix {
 
     private:
-        int rows, cols;
-        float *buff;
 
     public:
+        int rows, cols;
+        float *buff;
         Matrix(int rows, int cols);
         // Matrix(int rows, int cols, float *buff);
         ~Matrix();
 
         static void matMul(Matrix const &A, Matrix const &B, Matrix &C);
+        static void matMulT0(Matrix const &A, Matrix const &B, Matrix &C);
+        static void matMulT1(Matrix const &A, Matrix const &B, Matrix &C);
         static void matSum(Matrix const &A, Matrix const &B, Matrix &C);
         static void matSub(Matrix const &A, Matrix const &B, Matrix &C);
         static void matElMul(Matrix const &A, Matrix const &B, Matrix &C);

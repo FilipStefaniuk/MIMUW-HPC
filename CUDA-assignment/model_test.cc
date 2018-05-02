@@ -7,10 +7,11 @@
 #include "src/cc/initializers/random_initializer.hh"
 #include "src/cc/initializers/buffer_initializer.hh"
 
-#define BATCH_SIZE 4591
+#define LEN 128
+#define BATCH_SIZE 128 //4608 // 4591// 32
 
 #define INPUT 4096
-#define LAYER_1 8192
+#define LAYER_1 512 //8192
 #define LAYER_2 6144
 #define LAYER_3 3072
 #define LAYER_4 1024
@@ -19,13 +20,13 @@
 int main() {
 
     
-    float *data_x = new float[INPUT * BATCH_SIZE];
-    float *data_y = new float[OUTPUT * BATCH_SIZE];
+    float *data_x = new float[INPUT * LEN];
+    float *data_y = new float[OUTPUT * LEN];
     // BufferInitializer initX(data_x), initY(data_y);
     
-    for (int i = 0; i < BATCH_SIZE; ++i) {
-        data_x[BATCH_SIZE * (i % INPUT) + i] = 1;
-        data_y[BATCH_SIZE * (i % OUTPUT) + i] = 1;
+    for (int i = 0; i < LEN; ++i) {
+        data_x[LEN * (i % INPUT) + i] = 1;
+        data_y[LEN * (i % OUTPUT) + i] = 1;
     }
 
     // initX.fill(data_x, INPUT * BATCH_SIZE);
@@ -34,19 +35,19 @@ int main() {
     Model model(INPUT, OUTPUT, BATCH_SIZE);
     
     model.add<Dense>(LAYER_1);
-    model.add<Sigmoid>();
-    model.add<Dense>(LAYER_2);
-    model.add<Sigmoid>();
-    model.add<Dense>(LAYER_3);
-    model.add<Sigmoid>();
-    model.add<Dense>(LAYER_4);
-    model.add<Sigmoid>();
+    model.add<Tanh>();
+    // model.add<Dense>(LAYER_2);
+    // model.add<Tanh>();
+    // model.add<Dense>(LAYER_3);
+    // model.add<Tanh>();
+    // model.add<Dense>(LAYER_4);
+    // model.add<Tanh>();
     model.add<Dense>(OUTPUT);
     model.add<Softmax>();
 
     model.summary();
 
-    model.fit(data_x, data_y, 5, 0.00001, 0., 1.);
+    model.fit(data_x, data_y, LEN, 100, 0.01, 0., 1.);
 
     delete data_x;
     delete data_y;
