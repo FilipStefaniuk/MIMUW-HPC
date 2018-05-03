@@ -34,4 +34,4 @@ if __name__ == "__main__":
     model.compile(optimizer=SGD(lr=0.01),loss=categorical_crossentropy, metrics=['accuracy'])
     model.summary()
 
-    model.fit(data_X, data_Y, epochs=10, verbose=2, batch_size=32)
+    model.fit(data_X, data_Y, epochs=10, verbose=1, batch_size=32)
