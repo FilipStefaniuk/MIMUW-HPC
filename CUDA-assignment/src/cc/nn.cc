@@ -12,11 +12,11 @@
 #define LAYER_4 1024
 #define OUTPUT 62
 
-#define BATCH_SIZE 128
+#define BATCH_SIZE 32
 
 extern "C" {
 
-void fit(float *data_X, float *data_Y, int len, float eps, float learning_rate, int epochs, int random) {
+float fit(float *data_X, float *data_Y, int len, float eps, float learning_rate, int epochs, int random) {
 
     // for (int i = 0; i < INPUT; ++i) {
     //     for (int j = 0; j < 10; ++j) {
@@ -30,23 +30,18 @@ void fit(float *data_X, float *data_Y, int len, float eps, float learning_rate, 
     Model model(INPUT, OUTPUT, BATCH_SIZE);
     
     model.add<Dense>(LAYER_1);
-    model.add<Tanh>();
-    // model.add<ReLU>();
+    model.add<ReLU>();
     model.add<Dense>(LAYER_2);
-    model.add<Tanh>();
-    // model.add<ReLU>();
+    model.add<ReLU>();
     model.add<Dense>(LAYER_3);
-    model.add<Tanh>();
-    // model.add<ReLU>();
+    model.add<ReLU>();
     model.add<Dense>(LAYER_4);
-    model.add<Tanh>();
-    // model.add<ReLU>();
+    model.add<ReLU>();
     model.add<Dense>(OUTPUT);
     model.add<Softmax>();
 
     model.summary();
 
-    model.fit(data_X, data_Y, len, epochs, learning_rate, eps, random);
-
+    return model.fit(data_X, data_Y, len, epochs, learning_rate, eps, random);
 }
 }

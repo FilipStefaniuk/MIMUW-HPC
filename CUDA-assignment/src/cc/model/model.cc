@@ -76,7 +76,7 @@ void getBatch(Matrix &input, Matrix &batch, int n) {
 //                            FIT                                       
 //-----------------------------------------------------------------------------
 
-void Model::fit(float *data_x, float *data_y, int len,  int epochs, 
+float Model::fit(float *data_x, float *data_y, int len,  int epochs, 
                 float learning_rate, float eps, int random) {
 
     // Initialize input & output
@@ -89,8 +89,11 @@ void Model::fit(float *data_x, float *data_y, int len,  int epochs,
     for (Layer *l : this->layers) {
         l->initialize(1);
     }
+    
+    int i;
+    float sum_acc = 0;
 
-    for (int i = 0; i < epochs; ++i) {
+    for (i = 0; i < epochs; ++i) {
         
         int j;
         float acc = 0, cost = 0;
@@ -156,10 +159,19 @@ void Model::fit(float *data_x, float *data_y, int len,  int epochs,
         
         cost /= j;
         acc /= j;
+        
+        sum_acc += acc;
 
         std::cout << std::fixed << "epoch " << i + 1 << "/" << epochs << "\t" 
                   << std::setprecision(3) << "time: " << elapsedTime.count() << " ms, "
                   << "cost: " << cost << ", "
                   << std::setprecision(2) << "accuracy: " << acc << std::endl;
+        
+        if (cost < eps) {
+            ++i;
+            break;
+        }
     }
+
+    return sum_acc / i;
 }

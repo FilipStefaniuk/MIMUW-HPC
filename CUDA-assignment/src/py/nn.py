@@ -47,4 +47,7 @@ def fit(data, **kwargs):
 
     # Call c function
     dll = ctypes.CDLL('./nn.so', ctypes.RTLD_GLOBAL)
-    dll.fit(c_data_X, c_data_Y, size, c_epsilon, c_learning_rate, c_epochs, c_ranodm)
+    dll.fit.restype = ctypes.c_float
+    
+    return dll.fit(c_data_X, c_data_Y, size, c_epsilon, c_learning_rate, c_epochs, c_ranodm)
+    

@@ -38,8 +38,8 @@ class Layer {
         std::string info() {
             std::stringstream ss;
             ss << std::left << std::setw(12) << this->name;
-            ss << "[" << std::setw(4) << this->delta.getRows() << ", " << std::setw(4) << this->delta.getCols() << "]" << std::string(4, ' ');
-            ss << "[" << std::setw(4) << this->output.getRows() << ", " << std::setw(4) << this->output.getCols() <<  "]";
+            ss << "[" << std::setw(4) << this->delta.getCols() << ", " << std::setw(4) << this->delta.getRows() << "]" << std::string(4, ' ');
+            ss << "[" << std::setw(4) << this->output.getCols() << ", " << std::setw(4) << this->output.getRows() <<  "]";
             return ss.str();
         }
 

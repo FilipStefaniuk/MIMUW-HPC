@@ -36,7 +36,7 @@ class Model {
             layers.push_back(new L(*layers.back(), std::forward<Args>(args)...));
         }       
 
-        void fit(float *data_x, float *data_y, int len, int epochs, float learning_rate, float eps, int random);
+        float fit(float *data_x, float *data_y, int len, int epochs, float learning_rate, float eps, int random);
 
         void summary() {
             std::cout << std::string(40, '*') << std::endl;
