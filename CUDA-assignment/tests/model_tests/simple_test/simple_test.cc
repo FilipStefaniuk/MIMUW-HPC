@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <cstdlib>
 
 std::string buffToString(float *data, int rows, int cols) {
     std::stringstream ss;
@@ -25,8 +26,8 @@ std::string buffToString(float *data, int rows, int cols) {
 
 void test_model(Model &model, int input, int output, int epochs, float lr) {
 
-    float *data_x = new float[input * input];
-    float *data_y = new float[output * input];
+    float *data_x = (float*) calloc(input * input, sizeof(float));
+    float *data_y = (float*) calloc(output * input, sizeof(float));
     
     for (int i = 0; i < input; ++i) {
         data_x[input * (i % input) + i] = 1;
@@ -34,12 +35,11 @@ void test_model(Model &model, int input, int output, int epochs, float lr) {
     }
 
     // std::cout << buffToString(data_x, input, input) << std::endl;
-    // std::cout << buffToString(data_y, output, input) << std::endl;
 
     model.fit(data_x, data_y, input, epochs, lr, 0., 1.);
 
-    delete data_x;
-    delete data_y;
+    free(data_x);
+    free(data_y);
 }
 
 int main() {
@@ -58,7 +58,7 @@ int main() {
         model.add<Dense>(output);
         model.add<Softmax>();
 
-        test_model(model, input, output, 20, 1.4);
+        test_model(model, input, output, 50, 1.4);
         std::cout << std::endl;
     }
 

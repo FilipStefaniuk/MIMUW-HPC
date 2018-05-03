@@ -133,6 +133,62 @@ void Matrix::matMul(Matrix const &A, Matrix const &B, Matrix &C, int mode) {
 }
 
 //-----------------------------------------------------------------------------
+//                            MATRIX ROW SUM                                      
+//-----------------------------------------------------------------------------
+
+__global__
+void rowSumCUDA(float *A, float *B, int M, int N) {
+
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+
+    float Bval = 0;
+
+    for(int i = 0; i < N; ++i) {
+        Bval += A[x * N + i];
+    }
+
+    B[x * BLOCK_SIZE] = Bval;
+}
+
+void Matrix::rowSum(Matrix const &A, Matrix &B) {
+
+    int b_rows = BLOCK_ROUND_UP(A.getRows());
+    int b_cols = BLOCK_ROUND_UP(A.getCols());
+    
+    dim3 dimBlock(BLOCK_SIZE);
+    dim3 dimGrid(b_rows / dimBlock.x);
+
+    rowSumCUDA<<<dimGrid, dimBlock>>>(A.buff, B.buff, b_rows, b_cols);
+}
+
+//-----------------------------------------------------------------------------
+//                            MATRIX ADD VECTOR                                      
+//-----------------------------------------------------------------------------
+
+__global__
+void vecAddCUDA(float *A, float *B, float *C, int NN, int N) {
+
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (x < N) {
+        C[y * NN + x] = A[y * NN + x] + B[y * BLOCK_SIZE];
+    }
+}
+
+void Matrix::vecAdd(Matrix const &A, Matrix const &B, Matrix &C) {
+    
+    int b_rows = BLOCK_ROUND_UP(C.getRows());
+    int b_cols = BLOCK_ROUND_UP(C.getCols());
+    
+    dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
+    dim3 dimGrid(b_cols / dimBlock.x, b_rows / dimBlock.y);
+
+    vecAddCUDA<<<dimGrid, dimBlock>>>
+    (A.buff, B.buff, C.buff, b_cols, C.getCols());
+}
+
+//-----------------------------------------------------------------------------
 //                            MATRIX SUBTRACTION                                       
 //-----------------------------------------------------------------------------
 
@@ -212,7 +268,7 @@ void Matrix::init() {
 
     float *tmp_buff = (float*) calloc(b_rows * b_cols, sizeof(float));
     
-    std::mt19937 rng;
+    static std::mt19937 rng;
     std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
 
     for(int i = 0; i < this->rows; ++i) {
@@ -244,6 +300,18 @@ void Matrix::init(float val) {
 
 void Matrix::init(float *buff) {
 
+
+    // for (int i = 0; i < this->rows; ++i) {
+    //     for (int j = 0; j < this->cols; ++j) {
+    //         if (j) {
+    //             std::cout << " ";
+    //         }
+    //         std::cout << buff[i * this->cols + j]; 
+    //     }
+    //     std::cout << std::endl;
+    // }
+    // std::cout << std::endl;
+
     int b_rows = BLOCK_ROUND_UP(this->rows);
     int b_cols = BLOCK_ROUND_UP(this->cols);
 
@@ -265,6 +333,18 @@ void Matrix::init(float *buff) {
         }
     }
 
+    // DEBUG
+    // for (int i = 0; i < b_rows; ++i) {
+    //     for (int j = 0; j < b_cols; ++j) {
+    //         if (j) {
+    //             std::cout << " ";
+    //         }
+    //         std::cout << tmp_buff[i * b_rows + j];
+    //     }
+    //     std::cout << std::endl;
+    // }
+    // std::cout << std::endl;
+
     cudaMemcpy(this->buff, tmp_buff, b_rows * b_cols * sizeof(float), cudaMemcpyHostToDevice);
     free(tmp_buff);
 }
@@ -275,6 +355,8 @@ void Matrix::init(float *buff) {
 
 // Used only for testing
 bool Matrix::operator==(Matrix const &other) const {
+
+    cudaStreamSynchronize(0);
 
     if (this->rows != other.rows || this->cols != other.cols) {
         return false;
@@ -304,6 +386,8 @@ bool Matrix::operator==(Matrix const &other) const {
 
 // Used only for testing
 std::string Matrix::toString() const {
+    
+    cudaStreamSynchronize(0);
 
     std::stringstream ss;
     ss << *this << std::endl;

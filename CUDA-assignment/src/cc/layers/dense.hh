@@ -27,6 +27,7 @@ class Dense : public Layer {
         void initialize(int flag) {
             this->weights.init();
             this->bias.init();
+            this->dbias.init();
         }
 
         Matrix& forward_pass(Matrix &input) {
@@ -39,36 +40,46 @@ class Dense : public Layer {
             // std::cout << this->weights.toString() << std::endl;
             // std::cout << "---------------------" << std::endl;
 
-            this->inputT = &input;
+
             Matrix::matMul(this->weights, input, this->output, 0);
             Matrix::vecAdd(this->output, this->bias, this->output);
+            this->inputT = &input;
+            
             return this->output;
         }
 
         Matrix& backward_pass(Matrix &input) {
             this->d = &input;
             Matrix::matMul(weights, input, this->delta, LEFT_T);
+
             return this->delta;
         }
 
         void update(float lr) {
-            // std::cout << "WEIGHT UPDATES" << std::endl;
+            // std::cout << "OLD WEIGHT" << std::endl;
             // std::cout << this->weights.toString() << std::endl;
 
             // std::cout << "DELTA" << std::endl;
             // std::cout << this->d->toString() << std::endl;
 
+            // std::cout << "BIAS" << std::endl;
+            // std::cout << this->bias.toString() << std::endl;
+
+            // std::cout << "INPUT T" << std::endl;
+            // std::cout << this->inputT->toString() << std::endl;
+
             Matrix::matMul(*(this->d), *(this->inputT), this->dweights, RIGHT_T);
             Matrix::matElMul(lr / this->d->getCols(), this->dweights, this->dweights);
             Matrix::matSub(this->weights, this->dweights, this->weights);
             
-            // std::cout << "WEIGHT UPDATES" << std::endl;
-            // std::cout << this->dweights.toString() << std::endl;
+            // std::cout << "DBIAS" << std::endl;
+            // std::cout << this->dbias.toString() << std::endl;
 
             Matrix::rowSum(*(this->d), this->dbias);
             Matrix::matElMul(lr / this->d->getCols(), this->dbias, this->dbias);
             Matrix::matSub(this->bias, this->dbias, this->bias);
             
+            // std::cout << "WEIGHTS" << std::endl;
             // std::cout << this->weights.toString() << std::endl;
             // std::cout << "---------------------" << std::endl;
         }

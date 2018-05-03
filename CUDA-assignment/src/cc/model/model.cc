@@ -95,6 +95,7 @@ void Model::fit(float *data_x, float *data_y, int len,  int epochs,
         // Loss Function
         float tmp_cost = Model::crossEntropyCost(*input, this->output);
         float acc = Model::accuracy(*input, this->output);
+        
 
         // Delta
         Matrix::matSub(*input, this->output, this->delta);
@@ -102,11 +103,10 @@ void Model::fit(float *data_x, float *data_y, int len,  int epochs,
         // Backward pass
         Matrix *delta = &this->delta;
         for (auto it = this->layers.rbegin(); it != this->layers.rend(); ++it) {
-            delta = &(*it)->backward_pass(*delta);
-
             // std::cout << "DELTA" << std::endl;
             // std::cout << delta->toString() << std::endl;
             // std::cout << "---------------------" << std::endl;
+            delta = &(*it)->backward_pass(*delta);
         }
 
         // Update
