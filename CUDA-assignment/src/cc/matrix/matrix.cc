@@ -118,7 +118,7 @@ void Matrix::matElMul(float const x, Matrix const &A, Matrix &B) {
 void Matrix::init() {
 
     std::mt19937 rng;
-    std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
+    std::uniform_real_distribution<float> distribution(0.0f, 1.0);
 
     for (int i = 0; i < this->rows * this->cols; ++i) {
         this->buff[i] = distribution(rng);

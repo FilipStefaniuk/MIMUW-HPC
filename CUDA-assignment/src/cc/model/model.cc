@@ -83,10 +83,14 @@ void Model::fit(float *data_x, float *data_y, int len,  int epochs,
         for (Layer *layer : this->layers) {
             input = &layer->forward_pass(*input);
             
-            // std::cout << "OUTPUT VALUES" << std::endl;
-            // std::cout << input->toString() << std::endl;
-            // std::cout << "---------------------" << std::endl;
         }
+        // std::cout << "OUTPUT VALUES" << std::endl;
+        // std::cout << input->toString() << std::endl;
+        // std::cout << "---------------------" << std::endl;
+
+        // std::cout << "CORRECT VALUES" << std::endl;
+        // std::cout << this->output.toString() << std::endl;
+        // std::cout << "---------------------" << std::endl;
 
         // Loss Function
         float tmp_cost = Model::crossEntropyCost(*input, this->output);

@@ -31,6 +31,10 @@ class Dense : public Layer {
 
         Matrix& forward_pass(Matrix &input) {
 
+            // std::cout << "INPUT DENSE" << std::endl;
+            // std::cout << input.toString() << std::endl;
+            // std::cout << "---------------------" << std::endl;
+
             // std::cout << "WEIGHTS" << std::endl;
             // std::cout << this->weights.toString() << std::endl;
             // std::cout << "---------------------" << std::endl;
@@ -51,10 +55,16 @@ class Dense : public Layer {
             // std::cout << "WEIGHT UPDATES" << std::endl;
             // std::cout << this->weights.toString() << std::endl;
 
+            // std::cout << "DELTA" << std::endl;
+            // std::cout << this->d->toString() << std::endl;
+
             Matrix::matMul(*(this->d), *(this->inputT), this->dweights, RIGHT_T);
             Matrix::matElMul(lr / this->d->getCols(), this->dweights, this->dweights);
             Matrix::matSub(this->weights, this->dweights, this->weights);
             
+            // std::cout << "WEIGHT UPDATES" << std::endl;
+            // std::cout << this->dweights.toString() << std::endl;
+
             Matrix::rowSum(*(this->d), this->dbias);
             Matrix::matElMul(lr / this->d->getCols(), this->dbias, this->dbias);
             Matrix::matSub(this->bias, this->dbias, this->bias);
