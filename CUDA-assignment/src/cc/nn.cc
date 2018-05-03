@@ -16,16 +16,25 @@ extern "C" {
 
 void fit(float *data_X, float *data_Y, int len, float eps, float learning_rate, int epochs, int random) {
 
+    // for (int i = 0; i < INPUT; ++i) {
+    //     for (int j = 0; j < 10; ++j) {
+    //         if (j)
+    //             std::cout << " ";
+    //         std::cout << data_X[i * len + j];
+    //     }
+    //     std::cout << std::endl;
+    // }
+
     Model model(INPUT, OUTPUT, len);
     
     model.add<Dense>(LAYER_1);
-    model.add<Tanh>();
+    model.add<ReLU>();
     model.add<Dense>(LAYER_2);
-    model.add<Tanh>();
+    model.add<ReLU>();
     model.add<Dense>(LAYER_3);
-    model.add<Tanh>();
+    model.add<ReLU>();
     model.add<Dense>(LAYER_4);
-    model.add<Tanh>();
+    model.add<ReLU>();
     model.add<Dense>(OUTPUT);
     model.add<Softmax>();
 

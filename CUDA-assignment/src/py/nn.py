@@ -16,13 +16,9 @@ def normalize(data):
 
 def fit(data_X, data_Y, **kwargs):
 
-    size = len(data_Y) #150
-
-    data_X = data_X #[:size]
-    data_Y = data_Y #[:size]
+    size = len(data_Y)
 
     data_X  = normalize(data_X)
-    # print(data_X)
 
     data_Y = [[1 if x == i else 0 for i in range(62)] for x in data_Y]
 
