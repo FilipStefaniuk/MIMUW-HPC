@@ -1,8 +1,8 @@
 #ifndef __MODEL_HH__
 #define __MODEL_HH__
 
-#include "layers/layer.hh"
-#include "layers/input.hh"
+#include "../layers/layer.hh"
+#include "../layers/input.hh"
 #include <vector>
 #include <functional>
 #include <utility>

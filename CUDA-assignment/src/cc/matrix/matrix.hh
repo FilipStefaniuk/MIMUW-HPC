@@ -33,6 +33,9 @@ class Matrix {
 
         static void matMul(Matrix const &A, Matrix const &B, Matrix &C, int mode);
 
+        static void rowSum(Matrix const &A, Matrix &B);
+
+        static void vecAdd(Matrix const &A, Matrix const &B, Matrix &C);
         static void matSub(Matrix const &A, Matrix const &B, Matrix &C);
         
         static void matElMul(Matrix const &A, Matrix const &B, Matrix &C);

@@ -213,7 +213,7 @@ void Matrix::init() {
     float *tmp_buff = (float*) calloc(b_rows * b_cols, sizeof(float));
     
     std::mt19937 rng;
-    std::uniform_real_distribution<float> distribution(0.0f, 0.01f);
+    std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
 
     for(int i = 0; i < this->rows; ++i) {
         for (int j = 0; j < this->cols; ++j) {
