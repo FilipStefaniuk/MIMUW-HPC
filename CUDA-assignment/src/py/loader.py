@@ -4,8 +4,10 @@ import csv
 
 def load_data(dir):
 
-    data_X = []
-    data_Y = []
+    # data_X = []
+    # data_Y = []
+
+    data = []
 
     for root, _, files in os.walk(dir):
         
@@ -26,7 +28,7 @@ def load_data(dir):
                 images[file] = list(map(int, img.tobytes()))
             
         for row in metadata:
-            data_X.append(images[row['Filename']])
-            data_Y.append(int(row['ClassId']))
+            data.append((images[row['Filename']], int(row['ClassId'])))
+            
     
-    return data_X, data_Y
+    return data

@@ -105,6 +105,31 @@ float Model::crossEntropyCost(Matrix &pred_vals, Matrix &true_vals) {
 }
 
 //-----------------------------------------------------------------------------
+//                            GET BATCH                                       
+//-----------------------------------------------------------------------------
+
+__global__
+void getBatchCUDA(float *A, float *B, int AN, int BN, int BNN, int n) {
+
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (x < BN) {
+        B[y * BNN + x] = A[y * AN + x + n * BN];
+    }
+
+}
+
+void getBatch(Matrix &input, Matrix &batch, int n) {
+
+    dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
+    dim3 dimGrid(BLOCK_ROUND_UP(batch.getCols()) / BLOCK_SIZE,  BLOCK_ROUND_UP(batch.getRows()) / BLOCK_SIZE);
+
+    getBatchCUDA<<<dimGrid, dimBlock>>>
+    (input.buff, batch.buff, BLOCK_ROUND_UP(input.getCols()), batch.getCols(), BLOCK_ROUND_UP(batch.getCols()),  n);
+}
+
+//-----------------------------------------------------------------------------
 //                            FIT                                       
 //-----------------------------------------------------------------------------
 
@@ -112,8 +137,10 @@ void Model::fit(float *data_x, float *data_y, int len,  int epochs,
                 float learning_rate, float eps, int random) {
 
     // Initialize input & output
-    this->input.init(data_x);
-    this->output.init(data_y);
+    Matrix data_X(this->input_size, len);
+    Matrix data_Y(this->output_size, len);
+    data_X.init(data_x);
+    data_Y.init(data_y);
 
     // Initialize layers
     for (Layer *l : this->layers) {
@@ -127,49 +154,74 @@ void Model::fit(float *data_x, float *data_y, int len,  int epochs,
 
 
     for (int i = 0; i < epochs; ++i) {
-        
+
+        int j;
+        float acc = 0, cost = 0;
         cudaEventRecord( start, 0 );
 
-        // Forward pass
-        Matrix *input = &this->input;
-        for (Layer *layer : this->layers) {
-            input = &layer->forward_pass(*input);
-            
-        }
-        // std::cout << "OUTPUT VALUES" << std::endl;
-        // std::cout << input->toString() << std::endl;
-        // std::cout << "---------------------" << std::endl;
+        for (j = 0; j < len / this->batch_size; ++j) {
 
-        // std::cout << "CORRECT VALUES" << std::endl;
-        // std::cout << this->output.toString() << std::endl;
-        // std::cout << "---------------------" << std::endl;
+            getBatch(data_X, this->input, j);
+            getBatch(data_Y, this->output, j);
 
-        // cudaDeviceSynchronize();
-
-        // Loss Function
-        float tmp_cost = crossEntropyCost(*input, this->output);
-        float acc = accuracy(*input, this->output);
-
-        // std::cout << "OUTPUT VALUES" << std::endl;
-        // std::cout << input->toString() << std::endl;
-        // std::cout << "---------------------" << std::endl;
-
-
-        // Delta
-        Matrix::matSub(*input, this->output, this->delta);
-
-        // Backward pass
-        Matrix *delta = &this->delta;
-        for (auto it = this->layers.rbegin(); it != this->layers.rend(); ++it) {
-            // std::cout << "DELTA" << std::endl;
-            // std::cout << delta->toString() << std::endl;
+            // std::cout << "BATCH_X" << std::endl;
+            // std::cout << data_X.toString() << std::endl;
             // std::cout << "---------------------" << std::endl;
-            delta = &(*it)->backward_pass(*delta);
-        }
+    
+            // std::cout << "DATA_Y" << std::endl;
+            // std::cout << data_Y.toString() << std::endl;
+            // std::cout << "---------------------" << std::endl;
+            
+            // std::cout << "BATCH_X" << std::endl;
+            // std::cout << this->input.toString() << std::endl;
+            // std::cout << "---------------------" << std::endl;
 
-        // Update
-        for (Layer * layer : this->layers) {
-            layer->update(learning_rate);
+            // std::cout << "BATCH_Y" << std::endl;
+            // std::cout << this->output.toString() << std::endl;
+            // std::cout << "---------------------" << std::endl;
+
+            // Forward pass
+            Matrix *input = &this->input;
+            for (Layer *layer : this->layers) {
+                input = &layer->forward_pass(*input);
+                
+            }
+
+            // std::cout << "OUTPUT VALUES" << std::endl;
+            // std::cout << input->toString() << std::endl;
+            // std::cout << "---------------------" << std::endl;
+
+            // std::cout << "CORRECT VALUES" << std::endl;
+            // std::cout << this->output.toString() << std::endl;
+            // std::cout << "---------------------" << std::endl;
+
+            // cudaDeviceSynchronize();
+
+            // Loss Function
+            cost += crossEntropyCost(*input, this->output);
+            acc += accuracy(*input, this->output);
+
+            // std::cout << "OUTPUT VALUES" << std::endl;
+            // std::cout << input->toString() << std::endl;
+            // std::cout << "---------------------" << std::endl;
+
+
+            // Delta
+            Matrix::matSub(*input, this->output, this->delta);
+
+            // Backward pass
+            Matrix *delta = &this->delta;
+            for (auto it = this->layers.rbegin(); it != this->layers.rend(); ++it) {
+                // std::cout << "DELTA" << std::endl;
+                // std::cout << delta->toString() << std::endl;
+                // std::cout << "---------------------" << std::endl;
+                delta = &(*it)->backward_pass(*delta);
+            }
+
+            // Update
+            for (Layer * layer : this->layers) {
+                layer->update(learning_rate);
+            }
         }
 
         cudaEventRecord(stop, 0);
@@ -177,9 +229,13 @@ void Model::fit(float *data_x, float *data_y, int len,  int epochs,
 
         float elapsedTime;
         cudaEventElapsedTime(&elapsedTime, start, stop);
+
+        cost /= j;
+        acc /= j;
+
         std::cout << std::fixed << "epoch " << i + 1 << "/" << epochs << "\t" 
                   << std::setprecision(3) << "time: " << elapsedTime << " ms, "
-                  << "cost: " << tmp_cost << ", "
+                  << "cost: " << cost << ", "
                   << std::setprecision(2) << "accuracy: " << acc << std::endl;
     }
         

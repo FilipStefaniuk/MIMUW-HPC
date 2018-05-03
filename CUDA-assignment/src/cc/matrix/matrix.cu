@@ -339,7 +339,7 @@ void Matrix::init(float *buff) {
     //         if (j) {
     //             std::cout << " ";
     //         }
-    //         std::cout << tmp_buff[i * b_rows + j];
+    //         std::cout << tmp_buff[i * b_cols + j];
     //     }
     //     std::cout << std::endl;
     // }
@@ -347,6 +347,8 @@ void Matrix::init(float *buff) {
 
     cudaMemcpy(this->buff, tmp_buff, b_rows * b_cols * sizeof(float), cudaMemcpyHostToDevice);
     free(tmp_buff);
+
+    // std::cout << this->toString() << std::endl;
 }
 
 //-----------------------------------------------------------------------------

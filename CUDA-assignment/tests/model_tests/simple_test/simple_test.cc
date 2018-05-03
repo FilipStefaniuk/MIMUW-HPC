@@ -51,14 +51,14 @@ int main() {
         int const input = 20;
         int const output = 3;
         
-        Model model(input, output, input);
+        Model model(input, output, 5);
     
         model.add<Dense>(5);
         model.add<ReLU>();
         model.add<Dense>(output);
         model.add<Softmax>();
 
-        test_model(model, input, output, 50, 1.4);
+        test_model(model, input, output, 15, 1.4);
         std::cout << std::endl;
     }
 
@@ -69,14 +69,14 @@ int main() {
         int const input = 150;
         int const output = 7;
         
-        Model model(input, output, input);
+        Model model(input, output, 15);
     
         model.add<Dense>(20);
         model.add<ReLU>();
         model.add<Dense>(output);
         model.add<Softmax>();
 
-        test_model(model, input, output, 100, 0.7);
+        test_model(model, input, output, 20, 0.7);
         std::cout << std::endl;
     }
 

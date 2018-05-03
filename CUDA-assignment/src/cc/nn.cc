@@ -12,6 +12,8 @@
 #define LAYER_4 1024
 #define OUTPUT 62
 
+#define BATCH_SIZE 128
+
 extern "C" {
 
 void fit(float *data_X, float *data_Y, int len, float eps, float learning_rate, int epochs, int random) {
@@ -25,16 +27,20 @@ void fit(float *data_X, float *data_Y, int len, float eps, float learning_rate, 
     //     std::cout << std::endl;
     // }
 
-    Model model(INPUT, OUTPUT, len);
+    Model model(INPUT, OUTPUT, BATCH_SIZE);
     
     model.add<Dense>(LAYER_1);
-    model.add<ReLU>();
+    model.add<Tanh>();
+    // model.add<ReLU>();
     model.add<Dense>(LAYER_2);
-    model.add<ReLU>();
+    model.add<Tanh>();
+    // model.add<ReLU>();
     model.add<Dense>(LAYER_3);
-    model.add<ReLU>();
+    model.add<Tanh>();
+    // model.add<ReLU>();
     model.add<Dense>(LAYER_4);
-    model.add<ReLU>();
+    model.add<Tanh>();
+    // model.add<ReLU>();
     model.add<Dense>(OUTPUT);
     model.add<Softmax>();
 
