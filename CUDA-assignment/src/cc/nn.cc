@@ -12,7 +12,7 @@
 #define LAYER_4 1024
 #define OUTPUT 62
 
-#define BATCH_SIZE 32
+#define BATCH_SIZE 256
 
 extern "C" {
 

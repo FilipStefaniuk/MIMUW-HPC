@@ -25,9 +25,15 @@ class Dense : public Layer {
         ~Dense() {}
 
         void initialize(int flag) {
-            this->weights.init();
-            this->bias.init();
-            this->dbias.init();
+            if (flag) {
+                this->weights.init();
+                this->bias.init();
+                this->dbias.init();
+            } else {
+                this->weights.init(1.);
+                this->bias.init(1.);
+                this->dbias.init(1.);
+            }
         }
 
         Matrix& forward_pass(Matrix &input) {
@@ -36,9 +42,9 @@ class Dense : public Layer {
             // std::cout << input.toString() << std::endl;
             // std::cout << "---------------------" << std::endl;
 
-            // std::cout << "WEIGHTS" << std::endl;
-            // std::cout << this->weights.toString() << std::endl;
-            // std::cout << "---------------------" << std::endl;
+            std::cout << "WEIGHTS" << std::endl;
+            std::cout << this->weights.toString() << std::endl;
+            std::cout << "---------------------" << std::endl;
 
 
             Matrix::matMul(this->weights, input, this->output, 0);

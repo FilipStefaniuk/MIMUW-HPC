@@ -6,7 +6,8 @@
 #include <iostream>
 
 #define MNIST_INPUT 784
-#define MNIST_LAYER_1 30
+#define MNIST_LAYER_1 100
+#define MNIST_LAYER_2 30
 #define MNIST_OUTPUT 10
 
 #define BATCH_SIZE 32
@@ -25,7 +26,9 @@ void fitMNIST(float *data_X, float *data_Y, int len, float eps, float lr, int ep
 
     Model model(MNIST_INPUT, MNIST_OUTPUT, BATCH_SIZE);
 
-    model.add<Dense>(MNIST_LAYER_1);
+    // model.add<Dense>(MNIST_LAYER_1);
+    // model.add<ReLU>();
+    model.add<Dense>(MNIST_LAYER_2);
     model.add<ReLU>();
     model.add<Dense>(MNIST_OUTPUT);
     model.add<Softmax>();

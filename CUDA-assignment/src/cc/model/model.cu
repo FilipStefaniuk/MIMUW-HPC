@@ -144,7 +144,7 @@ float Model::fit(float *data_x, float *data_y, int len,  int epochs,
 
     // Initialize layers
     for (Layer *l : this->layers) {
-        l->initialize(1);
+        l->initialize(random);
     }
 
     // Create timer events

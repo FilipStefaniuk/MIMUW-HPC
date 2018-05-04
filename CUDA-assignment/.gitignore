@@ -1,2 +1,5 @@
+bin/
 .vscode/
+lib/
+arnold/
 **/__pycache__/*

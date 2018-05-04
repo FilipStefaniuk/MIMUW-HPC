@@ -6,10 +6,10 @@ import numpy
 
 def fit(data_x, data_y, **kwargs):
 
-    # l = 10000
+    l = 200
     
-    # data_x = data_x[:l]
-    # data_y = data_y[:l]
+    data_x = data_x[:l]
+    data_y = data_y[:l]
 
     # Transpose in memory
     data_x = data_x.T.copy()
@@ -24,7 +24,7 @@ def fit(data_x, data_y, **kwargs):
     c_len = ctypes.c_int(data_x.shape[1])
     c_epsilon = ctypes.c_float(0)
     c_lr = ctypes.c_float(0.1)
-    c_epochs = ctypes.c_int(10)
+    c_epochs = ctypes.c_int(3)
     c_random = ctypes.c_int(1)
 
     dll = ctypes.CDLL('./test.so', ctypes.RTLD_GLOBAL)
