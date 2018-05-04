@@ -166,22 +166,6 @@ float Model::fit(float *data_x, float *data_y, int len,  int epochs,
             getBatch(data_X, this->input, j);
             getBatch(data_Y, this->output, j);
 
-            // std::cout << "BATCH_X" << std::endl;
-            // std::cout << data_X.toString() << std::endl;
-            // std::cout << "---------------------" << std::endl;
-    
-            // std::cout << "DATA_Y" << std::endl;
-            // std::cout << data_Y.toString() << std::endl;
-            // std::cout << "---------------------" << std::endl;
-            
-            // std::cout << "BATCH_X" << std::endl;
-            // std::cout << this->input.toString() << std::endl;
-            // std::cout << "---------------------" << std::endl;
-
-            // std::cout << "BATCH_Y" << std::endl;
-            // std::cout << this->output.toString() << std::endl;
-            // std::cout << "---------------------" << std::endl;
-
             // Forward pass
             Matrix *input = &this->input;
             for (Layer *layer : this->layers) {
@@ -189,23 +173,9 @@ float Model::fit(float *data_x, float *data_y, int len,  int epochs,
                 
             }
 
-            // std::cout << "OUTPUT VALUES" << std::endl;
-            // std::cout << input->toString() << std::endl;
-            // std::cout << "---------------------" << std::endl;
-
-            // std::cout << "CORRECT VALUES" << std::endl;
-            // std::cout << this->output.toString() << std::endl;
-            // std::cout << "---------------------" << std::endl;
-
-            // cudaDeviceSynchronize();
-
             // Loss Function
             cost += crossEntropyCost(*input, this->output);
             acc += accuracy(*input, this->output);
-
-            // std::cout << "OUTPUT VALUES" << std::endl;
-            // std::cout << input->toString() << std::endl;
-            // std::cout << "---------------------" << std::endl;
 
 
             // Delta
@@ -214,9 +184,6 @@ float Model::fit(float *data_x, float *data_y, int len,  int epochs,
             // Backward pass
             Matrix *delta = &this->delta;
             for (auto it = this->layers.rbegin(); it != this->layers.rend(); ++it) {
-                // std::cout << "DELTA" << std::endl;
-                // std::cout << delta->toString() << std::endl;
-                // std::cout << "---------------------" << std::endl;
                 delta = &(*it)->backward_pass(*delta);
             }
 

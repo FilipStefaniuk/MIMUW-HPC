@@ -300,18 +300,6 @@ void Matrix::init(float val) {
 
 void Matrix::init(float *buff) {
 
-
-    // for (int i = 0; i < this->rows; ++i) {
-    //     for (int j = 0; j < this->cols; ++j) {
-    //         if (j) {
-    //             std::cout << " ";
-    //         }
-    //         std::cout << buff[i * this->cols + j]; 
-    //     }
-    //     std::cout << std::endl;
-    // }
-    // std::cout << std::endl;
-
     int b_rows = BLOCK_ROUND_UP(this->rows);
     int b_cols = BLOCK_ROUND_UP(this->cols);
 
@@ -333,22 +321,9 @@ void Matrix::init(float *buff) {
         }
     }
 
-    // DEBUG
-    // for (int i = 0; i < b_rows; ++i) {
-    //     for (int j = 0; j < b_cols; ++j) {
-    //         if (j) {
-    //             std::cout << " ";
-    //         }
-    //         std::cout << tmp_buff[i * b_cols + j];
-    //     }
-    //     std::cout << std::endl;
-    // }
-    // std::cout << std::endl;
-
     cudaMemcpy(this->buff, tmp_buff, b_rows * b_cols * sizeof(float), cudaMemcpyHostToDevice);
     free(tmp_buff);
 
-    // std::cout << this->toString() << std::endl;
 }
 
 //-----------------------------------------------------------------------------

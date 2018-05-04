@@ -9,11 +9,6 @@
 
 Matrix& Softmax::forward_pass(Matrix &input) {
 
-    // std::cout << "SOFTMAX IN" << std::endl;
-    // std::cout << input.toString() << std::endl;
-    // std::cout << "---------------------" << std::endl;
-
-
     for (int i = 0; i < input.getCols(); ++i) {
         
         float m = input.buff[i];
@@ -33,10 +28,6 @@ Matrix& Softmax::forward_pass(Matrix &input) {
         }
 
     }
-
-    // std::cout << "SOFTMAX OUT" << std::endl;
-    // std::cout << this->output.toString() << std::endl;
-    // std::cout << "---------------------" << std::endl;
 
     return this->output;
 }

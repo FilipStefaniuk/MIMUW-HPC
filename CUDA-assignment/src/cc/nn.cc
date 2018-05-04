@@ -12,20 +12,11 @@
 #define LAYER_4 1024
 #define OUTPUT 62
 
-#define BATCH_SIZE 4591
+#define BATCH_SIZE 32
 
 extern "C" {
 
 float fit(float *data_X, float *data_Y, int len, float eps, float learning_rate, int epochs, int random) {
-
-    // for (int i = 0; i < INPUT; ++i) {
-    //     for (int j = 0; j < 10; ++j) {
-    //         if (j)
-    //             std::cout << " ";
-    //         std::cout << data_X[i * len + j];
-    //     }
-    //     std::cout << std::endl;
-    // }
 
     Model model(INPUT, OUTPUT, BATCH_SIZE);
     

@@ -29,10 +29,6 @@ void softmaxCUDA(float *A, float *B, int M, int N, int NN) {
 
 Matrix& Softmax::forward_pass(Matrix &input) {
 
-    // std::cout << "SOFTMAX IN" << std::endl;
-    // std::cout << input.toString() << std::endl;
-    // std::cout << "---------------------" << std::endl;
-
     int cols = BLOCK_ROUND_UP(input.getCols());
     int rows = BLOCK_ROUND_UP(input.getRows());
 
