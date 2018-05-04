@@ -42,9 +42,9 @@ class Dense : public Layer {
             // std::cout << input.toString() << std::endl;
             // std::cout << "---------------------" << std::endl;
 
-            std::cout << "WEIGHTS" << std::endl;
-            std::cout << this->weights.toString() << std::endl;
-            std::cout << "---------------------" << std::endl;
+            // std::cout << "WEIGHTS" << std::endl;
+            // std::cout << this->weights.toString() << std::endl;
+            // std::cout << "---------------------" << std::endl;
 
 
             Matrix::matMul(this->weights, input, this->output, 0);

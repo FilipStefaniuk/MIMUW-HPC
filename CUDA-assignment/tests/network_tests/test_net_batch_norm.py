@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from src.py import loader
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation

@@ -1,20 +1,6 @@
 import ctypes
 import random
 
-
-# def normalize(data):
-
-#     maxes = [0]*len(data[0])
-#     mins = [250]*len(data[0])
-
-#     for row in data:
-#         for i, val in enumerate(row):
-#             maxes[i] = max([maxes[i], val])
-#             mins[i] = min([mins[i], val])
-
-#     return [[(val - mins[i])/(0.00000001 + maxes[i] - mins[i]) for i, val in enumerate(row)] for row in data]
-
-
 def fit(data, **kwargs):
 
     # Get Size of data
@@ -46,7 +32,7 @@ def fit(data, **kwargs):
     c_ranodm = ctypes.c_int(True) if kwargs['random'] == 'true' else ctypes.c_int(False) 
 
     # Call c function
-    dll = ctypes.CDLL('./libmlp.so', ctypes.RTLD_GLOBAL)
+    dll = ctypes.CDLL('./lib/mlp.so', ctypes.RTLD_GLOBAL)
     dll.fit.restype = ctypes.c_float
     
     return dll.fit(c_data_X, c_data_Y, size, c_epsilon, c_learning_rate, c_epochs, c_ranodm)

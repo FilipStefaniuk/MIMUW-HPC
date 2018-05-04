@@ -15,15 +15,6 @@
 extern "C" {
 void fitMNIST(float *data_X, float *data_Y, int len, float eps, float lr, int epochs, int random) {
     
-    // for (int i =0; i < MNIST_INPUT; ++i) {
-    //     for (int j = 0; j < len; ++j) {
-    //         if (j)
-    //             std::cout << " ";
-    //         std::cout << data_X[i * len + j];
-    //     }
-    //     std::cout << std::endl;
-    // }
-
     Model model(MNIST_INPUT, MNIST_OUTPUT, BATCH_SIZE);
 
     // model.add<Dense>(MNIST_LAYER_1);
