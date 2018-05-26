@@ -19,7 +19,7 @@ double axilrod_teller(const struct particle  *i, const struct particle *j, const
     double rsq_ij, rsq_ik, rsq_kj;
     double mul, num;
 
-    double tmp;
+    // double tmp;
 
     r_ij = norm_dist(i, j);
     r_ik = norm_dist(i, k);

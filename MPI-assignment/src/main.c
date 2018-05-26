@@ -36,7 +36,7 @@ void shift_right(int *owner, int *count, struct particle *b, int prev, int *send
 
     MPI_Waitall(2, requests, statuses);
 
-    memcpy(b, buff, prev_count);
+    memcpy(b, buff, prev_count * sizeof(struct particle));
     *owner = prev_owner;
     *count = prev_count;
 
@@ -57,21 +57,39 @@ void calculate_one_buffer(int count, struct particle *b) {
     }
 }
 
-void calculate_two_buffer(int count0, struct particle *b0, int count1, struct particle *b1) {
+void calculate_two_buffer(int num, int count0, struct particle *b0, int count1, struct particle *b1) {
 
     for (int i = 0; i < count0; ++i) {
         for (int j = i + 1; j < count0; ++j) {
             for (int k = 0; k < count1; ++k) {
+                double tmp1, tmp2, tmp3;
+
+                tmp1 = b0[i].fx;
+                tmp2 = b0[j].fx;
+                tmp3 = b1[k].fx;
+
+                b0[i].fx = 0;
+                b0[j].fx = 0;
+                b1[k].fx = 0;
+
                 // printf("Two buffer calculation!\n");
                 compute_force(&b0[i], &b0[j], &b1[k]);
                 compute_force(&b0[j], &b0[i], &b1[k]);
                 compute_force(&b1[k], &b0[j], &b0[i]);
+
+                // printf("{%d} x: %lf %lf %lf %.16lf\n", num, b0[i].x, b0[j].x, b1[k].x,  b0[i].fx);
+                // printf("{%d} x: %lf %lf %lf %.16lf\n", num, b0[j].x, b0[i].x, b1[k].x,  b0[j].fx);
+                // printf("{%d} x: %lf %lf %lf %.16lf\n", num, b1[k].x, b0[j].x, b0[i].x,  b1[k].fx);
+
+                b0[i].fx += tmp1;
+                b0[j].fx += tmp2;
+                b1[k].fx += tmp3;
             }
         }
     }
 }
 
-void calculate_three_buffer(int num, int count0, struct particle *b0, int count1, struct particle *b1, int count2, struct particle *b2) {
+void calculate_three_buffer(int num, int count0, struct particle *b0, int count1, struct particle *b1, int count2, struct particle *b2, int owner0, int owner1, int owner2) {
     
     // int prev, next;
     // prev = (num + 3) % 4;
@@ -80,13 +98,52 @@ void calculate_three_buffer(int num, int count0, struct particle *b0, int count1
     for (int i = 0; i < count0; ++i) {
         for (int j = 0; j < count1; ++j) {
             for (int k = 0; k < count2; ++k) {
-                // printf("Three buffer calculation!\n");
+                double tmp1, tmp2, tmp3;
+
+                tmp1 = b0[i].fx;
+                tmp2 = b1[j].fx;
+                tmp3 = b2[k].fx;
+
+                b0[i].fx = 0;
+                b1[j].fx = 0;
+                b2[k].fx = 0;
+
+                // printf("{%d} (%d/%d, {%d}) (%d/%d, {%d}) (%d/%d, {%d})\n", num, i+1, count0, owner0, j+1, count1, owner1, k+1, count2, owner2);
+
                 compute_force(&b0[i], &b1[j], &b2[k]);
                 compute_force(&b1[j], &b0[i], &b2[k]);
                 compute_force(&b2[k], &b1[j], &b0[i]);
-                // printf("{%d} %d %d | x: %lf %lf %lf y: %lf %lf %lf z: %lf %lf %lf %.16lf\n", prev, num, next, b0[i].x, b1[j].x, b2[k].x, b0[i].y, b1[j].y, b2[k].y, b0[i].z, b1[j].z, b2[k].z, b0[i].fx);
-                // printf("{%d} %d %d | x: %lf %lf %lf y: %lf %lf %lf z: %lf %lf %lf %.16lf\n", num, prev, next, b1[j].x, b0[i].x, b2[k].x, b1[j].y, b0[i].y, b2[k].y, b1[j].z, b0[i].z, b2[k].z, b1[j].fx);
-                // printf("{%d} %d %d | x: %lf %lf %lf y: %lf %lf %lf z: %lf %lf %lf %.16lf\n", next, num, prev, b2[k].x, b1[j].x, b0[i].x, b2[k].y, b1[j].y, b0[i].y, b2[k].z, b1[j].z, b0[i].z, b2[k].fx);
+
+                // printf("{%d} x: %lf %lf %lf %.16lf\n", num, b0[i].x, b1[j].x, b2[k].x,  b0[i].fx);
+                // printf("{%d} x: %lf %lf %lf %.16lf\n", num, b1[j].x, b0[i].x, b2[k].x,  b1[j].fx);
+                // printf("{%d} x: %lf %lf %lf %.16lf\n", num, b2[k].x, b1[j].x, b0[i].x,  b2[k].fx);
+
+                b0[i].fx += tmp1;
+                b1[j].fx += tmp2;
+                b2[k].fx += tmp3;
+            }
+        }
+    }
+}
+
+void calculate_one_third(int num, int count0, struct particle *b0, int count1, struct particle *b1, int count2, struct particle *b2, int owner0, int owner1, int owner2) {
+    
+    for (int i = 0; i < count0; ++i) {
+        for (int j = 0; j < count1; ++j) {
+            for (int k = 0; k < count2; ++k) {
+                double tmp1;
+
+                tmp1 = b0[i].fx;
+
+                b0[i].fx = 0;
+
+                // printf("{%d} (%d/%d, {%d}) (%d/%d, {%d}) (%d/%d, {%d})\n", num, i+1, count0, owner0, j+1, count1, owner1, k+1, count2, owner2);
+
+                compute_force(&b0[i], &b1[j], &b2[k]);
+
+                // printf("{%d} x: %lf %lf %lf %.16lf\n", num, b0[i].x, b1[j].x, b2[k].x,  b0[i].fx);
+
+                b0[i].fx += tmp1;
             }
         }
     }
@@ -97,9 +154,9 @@ static int const ROOT_PROCESS = 0;
 
 int main(int argc, char *argv[]) {
 
-    int allParticlesCount, particlesCountRoundUp;
+    int allParticlesCount = 0, particlesCountRoundUp;
     int *sendcounts, *displs;
-    struct particle *allParticles;
+    struct particle *allParticles = NULL;
     int b_owner[3];
     int b_count[3];
     struct particle * b[3];
@@ -107,6 +164,9 @@ int main(int argc, char *argv[]) {
     int next, prev;
     int shift_next;
     double deltatime = 0.5;
+    struct cmd_args cmd_args;
+
+    parse_args(argc, argv, &cmd_args);
 
     MPI_Init(&argc, &argv);
 
@@ -136,7 +196,7 @@ int main(int argc, char *argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &myProcessNo);
 
     if (myProcessNo == ROOT_PROCESS) {
-        allParticlesCount = parse_input("./input2.txt", &allParticles);
+        allParticles = parse_input(cmd_args.particles_in, &allParticlesCount);
 
     }
 
@@ -237,25 +297,28 @@ int main(int argc, char *argv[]) {
     shift_next = 0;
     // printf("%d: %d %d %d\n", myProcessNo, b_owner[0], b_owner[1], b_owner[2]);
 
-    for (int i = numProcesses - 3; i > 0; i -= 3) {
+    for (int s = numProcesses - 3; s >= 0; s -= 3) {
 
-        for (int s = i; s > 0; --s) {
+        for (int i = 0; i < s; ++i) {
             
-            if (s != numProcesses - 3) {
+            if (i != 0 || s != numProcesses - 3) {
             
                 shift_right(&b_owner[shift_next], &b_count[shift_next], b[shift_next], prev,
                             sendcounts, numProcesses,  next, particlesCountRoundUp, &mpi_particle_type);
 
             } else {
             
-                // calculate_one_buffer(b_count[1], b[1]);
-                // calculate_two_buffer(b_count[1], b[1], b_count[2], b[2]);
-                // calculate_two_buffer(b_count[0], b[0], b_count[2], b[2]);
-                // calculate_two_buffer(b_count[0], b[0], b_count[1], b[1]);
+                calculate_one_buffer(b_count[1], b[1]);
+                calculate_two_buffer(myProcessNo, b_count[1], b[1], b_count[2], b[2]);
+                calculate_two_buffer(myProcessNo, b_count[0], b[0], b_count[2], b[2]);
             }
 
-            // printf("%d: %d %d %d\n", myProcessNo, b_owner[0], b_owner[1], b_owner[2]);
-            calculate_three_buffer(myProcessNo, b_count[0], b[0], b_count[1], b[1], b_count[2], b[2]);
+            if (s == numProcesses - 3) {
+                calculate_two_buffer(myProcessNo, b_count[1], b[1], b_count[0], b[0]);
+            }
+
+            // printf("%d: %d (%d) %d (%d) %d (%d)\n", myProcessNo, b_owner[0], b_count[0], b_owner[1], b_count[1], b_owner[2], b_count[2]);
+            calculate_three_buffer(myProcessNo, b_count[0], b[0], b_count[1], b[1], b_count[2], b[2], b_owner[0], b_owner[1], b_owner[2]);
 
         }
 
@@ -263,15 +326,13 @@ int main(int argc, char *argv[]) {
     }
 
     // SPECIAL CASE
-    if (!(numProcesses % 3)) {
+    if (numProcesses % 3 == 0) {
 
 
         shift_right(&b_owner[(shift_next + 2) % 3], &b_count[(shift_next + 2) % 3], b[(shift_next + 2) % 3], 
                     prev, sendcounts, numProcesses,  next, particlesCountRoundUp, &mpi_particle_type);
-        printf("%d: %d %d %d\n", myProcessNo, b_owner[0], b_owner[1], b_owner[2]);
 
-
-    //     // calculate something ???
+        calculate_one_third(myProcessNo, b_count[0], b[0], b_count[1], b[1], b_count[2], b[2], b_owner[0], b_owner[1], b_owner[2]);
     }
 
     // printf("< {%d} %.16lf %.16lf %.16lf\n", myProcessNo, b[0][0].x, b[1][0].x, b[2][0].x);
@@ -345,13 +406,13 @@ int main(int argc, char *argv[]) {
     // calculate (sum forces, change velocities)
     for (int i = 0; i < myParticlesCount; ++i) {
 
-        // printf("{%d} %.16lf %.16lf %.16lf\n", myProcessNo, b[0][i].fx, b[1][i].fx, b[2][i].fx);
+        // printf("{%d, %d} %.16lf %.16lf %.16lf\n", i, myProcessNo, b[0][i].fx, b[1][i].fx, b[2][i].fx);
 
         b[1][i].fx += b[0][i].fx + b[2][i].fx;
         b[1][i].fy += b[0][i].fy + b[2][i].fy;
         b[1][i].fz += b[0][i].fz + b[2][i].fz;
 
-        // printf("%d: New accs: %.15lf, %.15lf, %.15lf\n", myProcessNo, b[1][i].fx, b[1][i].fy, b[1][i].fz);
+        printf("%d: New accs: %.15lf, %.15lf, %.15lf\n", myProcessNo, b[1][i].fx, b[1][i].fy, b[1][i].fz);
 
         update_acceleration(&b[1][i]);
 
@@ -376,7 +437,7 @@ int main(int argc, char *argv[]) {
     );
 
     if (myProcessNo == ROOT_PROCESS) {
-        write_output("output.txt", allParticlesCount, allParticles);
+        write_output(cmd_args.particles_out, allParticlesCount, allParticles);
     }
 
     free(b[0]);

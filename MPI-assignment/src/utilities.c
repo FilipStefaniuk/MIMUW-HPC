@@ -92,4 +92,6 @@ int parse_args(int argc, char *argv[], struct cmd_args *cmd_args) {
     cmd_args->particles_out = argv[2];
     cmd_args->stepcount = atoi(argv[3]);
     cmd_args->deltatime = atof(argv[4]);
+
+    return 0;
 }
