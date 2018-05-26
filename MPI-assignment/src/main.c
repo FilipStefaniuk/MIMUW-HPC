@@ -149,6 +149,194 @@ void calculate_one_third(int num, int count0, struct particle *b0, int count1, s
     }
 }
 
+void compute_acceleration(int *b_owner, int *b_count, struct particle *b[], MPI_Datatype *mpi_particle_type,
+        int numProcesses, int myProcessNo, int myParticlesCount, int particlesCountRoundUp, int *sendcounts, int prev, int next) {
+
+    // Algorithm
+    //-------------------------------------------------------------------------
+
+    MPI_Request requests[4];
+    MPI_Status statuses[4];
+
+    b_owner[0] = prev;
+    b_owner[2] = next;
+
+    b_count[0] = sendcounts[b_owner[0]];
+    b_count[2] = sendcounts[b_owner[2]];
+
+    MPI_Irecv(
+        b[0],
+        b_count[0],
+        *mpi_particle_type,
+        b_owner[0],
+        1,
+        MPI_COMM_WORLD,
+        &requests[0]
+    );
+
+    MPI_Irecv(
+        b[2],
+        b_count[2],
+        *mpi_particle_type,
+        b_owner[2],
+        1,
+        MPI_COMM_WORLD,
+        &requests[1]
+    );
+
+    MPI_Isend(
+        b[1],
+        b_count[1],
+        *mpi_particle_type,
+        b_owner[0],
+        1,
+        MPI_COMM_WORLD,
+        &requests[2]
+    );
+
+    MPI_Isend(
+        b[1],
+        b_count[1],
+        *mpi_particle_type,
+        b_owner[2],
+        1,
+        MPI_COMM_WORLD,
+        &requests[3]
+    );
+
+    MPI_Waitall(4, requests, statuses);
+
+
+    int shift_next = 0;
+    // printf("%d: %d %d %d\n", myProcessNo, b_owner[0], b_owner[1], b_owner[2]);
+
+    for (int s = numProcesses - 3; s >= 0; s -= 3) {
+
+        for (int i = 0; i < s; ++i) {
+            
+            if (i != 0 || s != numProcesses - 3) {
+            
+                shift_right(&b_owner[shift_next], &b_count[shift_next], b[shift_next], prev,
+                            sendcounts, numProcesses,  next, particlesCountRoundUp, mpi_particle_type);
+
+            } else {
+            
+                calculate_one_buffer(b_count[1], b[1]);
+                calculate_two_buffer(myProcessNo, b_count[1], b[1], b_count[2], b[2]);
+                calculate_two_buffer(myProcessNo, b_count[0], b[0], b_count[2], b[2]);
+            }
+
+            if (s == numProcesses - 3) {
+                calculate_two_buffer(myProcessNo, b_count[1], b[1], b_count[0], b[0]);
+            }
+
+            // printf("%d: %d (%d) %d (%d) %d (%d)\n", myProcessNo, b_owner[0], b_count[0], b_owner[1], b_count[1], b_owner[2], b_count[2]);
+            calculate_three_buffer(myProcessNo, b_count[0], b[0], b_count[1], b[1], b_count[2], b[2], b_owner[0], b_owner[1], b_owner[2]);
+
+        }
+
+        shift_next = (shift_next + 1) % 3;
+    }
+
+    // SPECIAL CASE
+    if (numProcesses % 3 == 0) {
+
+
+        shift_right(&b_owner[(shift_next + 2) % 3], &b_count[(shift_next + 2) % 3], b[(shift_next + 2) % 3], 
+                    prev, sendcounts, numProcesses,  next, particlesCountRoundUp, mpi_particle_type);
+
+        calculate_one_third(myProcessNo, b_count[0], b[0], b_count[1], b[1], b_count[2], b[2], b_owner[0], b_owner[1], b_owner[2]);
+    }
+
+    // printf("< {%d} %.16lf %.16lf %.16lf\n", myProcessNo, b[0][0].x, b[1][0].x, b[2][0].x);
+
+
+    // Sent particles back to owners
+    {
+        struct particle *buff[3];
+        int request_count = 0;
+        MPI_Request requests2[6];
+        MPI_Status statuses2[6];
+
+        buff[0] = malloc(sizeof(struct particle) * particlesCountRoundUp);
+        buff[1] = malloc(sizeof(struct particle) * particlesCountRoundUp);
+        buff[2] = malloc(sizeof(struct particle) * particlesCountRoundUp);
+
+        for (int i = 0; i < 3; ++i) {
+            if (b_owner[i] != myProcessNo) {
+
+                // printf("<< {%d} %lf %.14lf\n", b_owner[i], b[i][0].x, b[i][0].fx);
+                
+                MPI_Irecv(
+                    buff[i],
+                    myParticlesCount,
+                    *mpi_particle_type,
+                    MPI_ANY_SOURCE,
+                    1,
+                    MPI_COMM_WORLD,
+                    &requests2[request_count]
+                );
+
+                request_count++;
+
+                MPI_Isend(
+                    b[i],
+                    b_count[i],
+                    *mpi_particle_type,
+                    b_owner[i],
+                    1,
+                    MPI_COMM_WORLD,
+                    &requests2[request_count]
+                );
+
+                request_count++;
+            }
+        }
+
+        MPI_Waitall(request_count, requests2, statuses2);
+
+        // printf("%d: requests %d\n", myProcessNo, request_count);
+
+        for (int i = 0; i < 3; ++i) {
+
+            if (b_owner[i] != myProcessNo) {
+
+                // printf(">> %d: %lf\n", myProcessNo, buff[i]->x);
+                
+                memcpy(b[i], buff[i], myParticlesCount * sizeof(struct particle));
+                b_owner[i] = myProcessNo;
+                b_count[i] = myParticlesCount;
+            }
+        }
+
+        free(buff[0]);
+        free(buff[1]);
+        free(buff[2]);
+    }
+
+    // printf("> {%d} %.16lf %.16lf %.16lf\n", myProcessNo, b[0][0].x, b[1][0].x, b[2][0].x);
+
+    // calculate (sum forces, change velocities)
+    for (int i = 0; i < myParticlesCount; ++i) {
+
+        // printf("{%d, %d} %.16lf %.16lf %.16lf\n", i, myProcessNo, b[0][i].fx, b[1][i].fx, b[2][i].fx);
+
+        b[1][i].fx += b[0][i].fx + b[2][i].fx;
+        b[1][i].fy += b[0][i].fy + b[2][i].fy;
+        b[1][i].fz += b[0][i].fz + b[2][i].fz;
+
+        // printf("%d: New accs: %.15lf, %.15lf, %.15lf\n", myProcessNo, b[1][i].fx, b[1][i].fy, b[1][i].fz);
+
+        // update_acceleration(&b[1][i]);
+
+        // update_position(&b[1][i], deltatime);
+
+        // printf("{%d} position %.16lf %.16lf %.16lf\n", myProcessNo, b[1][i].x, b[1][i].y, b[1][i].z);
+    }
+
+    //-------------------------------------------------------------------------
+
+}
 
 static int const ROOT_PROCESS = 0;
 
@@ -162,8 +350,7 @@ int main(int argc, char *argv[]) {
     struct particle * b[3];
     int numProcesses, myProcessNo, myParticlesCount;
     int next, prev;
-    int shift_next;
-    double deltatime = 0.5;
+    // double deltatime = 0.5;
     struct cmd_args cmd_args;
 
     parse_args(argc, argv, &cmd_args);
@@ -239,190 +426,28 @@ int main(int argc, char *argv[]) {
         MPI_COMM_WORLD
     );
 
-    // Algorithm
-    //-------------------------------------------------------------------------
 
-    MPI_Request requests[4];
-    MPI_Status statuses[4];
+    compute_acceleration(b_owner, b_count, b, &mpi_particle_type, numProcesses, myProcessNo, myParticlesCount, particlesCountRoundUp, sendcounts, prev, next);
 
-    b_owner[0] = prev;
-    b_owner[2] = next;
-
-    b_count[0] = sendcounts[b_owner[0]];
-    b_count[2] = sendcounts[b_owner[2]];
-
-    MPI_Irecv(
-        b[0],
-        b_count[0],
-        mpi_particle_type,
-        b_owner[0],
-        1,
-        MPI_COMM_WORLD,
-        &requests[0]
-    );
-
-    MPI_Irecv(
-        b[2],
-        b_count[2],
-        mpi_particle_type,
-        b_owner[2],
-        1,
-        MPI_COMM_WORLD,
-        &requests[1]
-    );
-
-    MPI_Isend(
-        b[1],
-        b_count[1],
-        mpi_particle_type,
-        b_owner[0],
-        1,
-        MPI_COMM_WORLD,
-        &requests[2]
-    );
-
-    MPI_Isend(
-        b[1],
-        b_count[1],
-        mpi_particle_type,
-        b_owner[2],
-        1,
-        MPI_COMM_WORLD,
-        &requests[3]
-    );
-
-    MPI_Waitall(4, requests, statuses);
-
-
-    shift_next = 0;
-    // printf("%d: %d %d %d\n", myProcessNo, b_owner[0], b_owner[1], b_owner[2]);
-
-    for (int s = numProcesses - 3; s >= 0; s -= 3) {
-
-        for (int i = 0; i < s; ++i) {
-            
-            if (i != 0 || s != numProcesses - 3) {
-            
-                shift_right(&b_owner[shift_next], &b_count[shift_next], b[shift_next], prev,
-                            sendcounts, numProcesses,  next, particlesCountRoundUp, &mpi_particle_type);
-
-            } else {
-            
-                calculate_one_buffer(b_count[1], b[1]);
-                calculate_two_buffer(myProcessNo, b_count[1], b[1], b_count[2], b[2]);
-                calculate_two_buffer(myProcessNo, b_count[0], b[0], b_count[2], b[2]);
-            }
-
-            if (s == numProcesses - 3) {
-                calculate_two_buffer(myProcessNo, b_count[1], b[1], b_count[0], b[0]);
-            }
-
-            // printf("%d: %d (%d) %d (%d) %d (%d)\n", myProcessNo, b_owner[0], b_count[0], b_owner[1], b_count[1], b_owner[2], b_count[2]);
-            calculate_three_buffer(myProcessNo, b_count[0], b[0], b_count[1], b[1], b_count[2], b[2], b_owner[0], b_owner[1], b_owner[2]);
-
-        }
-
-        shift_next = (shift_next + 1) % 3;
-    }
-
-    // SPECIAL CASE
-    if (numProcesses % 3 == 0) {
-
-
-        shift_right(&b_owner[(shift_next + 2) % 3], &b_count[(shift_next + 2) % 3], b[(shift_next + 2) % 3], 
-                    prev, sendcounts, numProcesses,  next, particlesCountRoundUp, &mpi_particle_type);
-
-        calculate_one_third(myProcessNo, b_count[0], b[0], b_count[1], b[1], b_count[2], b[2], b_owner[0], b_owner[1], b_owner[2]);
-    }
-
-    // printf("< {%d} %.16lf %.16lf %.16lf\n", myProcessNo, b[0][0].x, b[1][0].x, b[2][0].x);
-
-
-    // Sent particles back to owners
-    {
-        struct particle *buff[3];
-        int request_count = 0;
-        MPI_Request requests2[6];
-        MPI_Status statuses2[6];
-
-        buff[0] = malloc(sizeof(struct particle) * particlesCountRoundUp);
-        buff[1] = malloc(sizeof(struct particle) * particlesCountRoundUp);
-        buff[2] = malloc(sizeof(struct particle) * particlesCountRoundUp);
-
-        for (int i = 0; i < 3; ++i) {
-            if (b_owner[i] != myProcessNo) {
-
-                // printf("<< {%d} %lf %.14lf\n", b_owner[i], b[i][0].x, b[i][0].fx);
-                
-                MPI_Irecv(
-                    buff[i],
-                    myParticlesCount,
-                    mpi_particle_type,
-                    MPI_ANY_SOURCE,
-                    1,
-                    MPI_COMM_WORLD,
-                    &requests2[request_count]
-                );
-
-                request_count++;
-
-                MPI_Isend(
-                    b[i],
-                    b_count[i],
-                    mpi_particle_type,
-                    b_owner[i],
-                    1,
-                    MPI_COMM_WORLD,
-                    &requests2[request_count]
-                );
-
-                request_count++;
-            }
-        }
-
-        MPI_Waitall(request_count, requests2, statuses2);
-
-        // printf("%d: requests %d\n", myProcessNo, request_count);
-
-        for (int i = 0; i < 3; ++i) {
-
-            if (b_owner[i] != myProcessNo) {
-
-                // printf(">> %d: %lf\n", myProcessNo, buff[i]->x);
-                
-                memcpy(b[i], buff[i], myParticlesCount * sizeof(struct particle));
-                b_owner[i] = myProcessNo;
-                b_count[i] = myParticlesCount;
-            }
-        }
-
-        free(buff[0]);
-        free(buff[1]);
-        free(buff[2]);
-    }
-
-    // printf("> {%d} %.16lf %.16lf %.16lf\n", myProcessNo, b[0][0].x, b[1][0].x, b[2][0].x);
-
-    // calculate (sum forces, change velocities)
     for (int i = 0; i < myParticlesCount; ++i) {
-
-        // printf("{%d, %d} %.16lf %.16lf %.16lf\n", i, myProcessNo, b[0][i].fx, b[1][i].fx, b[2][i].fx);
-
-        b[1][i].fx += b[0][i].fx + b[2][i].fx;
-        b[1][i].fy += b[0][i].fy + b[2][i].fy;
-        b[1][i].fz += b[0][i].fz + b[2][i].fz;
-
-        printf("%d: New accs: %.15lf, %.15lf, %.15lf\n", myProcessNo, b[1][i].fx, b[1][i].fy, b[1][i].fz);
-
         update_acceleration(&b[1][i]);
-
-        update_position(&b[1][i], deltatime);
-
-        // printf("{%d} position %.16lf %.16lf %.16lf\n", myProcessNo, b[1][i].x, b[1][i].y, b[1][i].z);
     }
 
-    //-------------------------------------------------------------------------
+    for (int i = 0; i < cmd_args.stepcount; ++i) {
 
+        for(int j = 0; j < myParticlesCount; ++j) {
+            update_position(&b[1][j], cmd_args.deltatime);
+        }
+        
+        MPI_Barrier(MPI_COMM_WORLD);
+        compute_acceleration(b_owner, b_count, b, &mpi_particle_type, numProcesses, myProcessNo, myParticlesCount, particlesCountRoundUp, sendcounts, prev, next);
+        
+        for(int j = 0; j < myParticlesCount; ++j) {
+            update_velocity(&b[1][j], cmd_args.deltatime);
+            update_acceleration(&b[1][j]);
+        }
+
+    }
 
     MPI_Gatherv(
         b[1],
