@@ -83,7 +83,7 @@ int write_output(char *filename, int count, struct particle *p) {
 
 int parse_args(int argc, char *argv[], struct cmd_args *cmd_args) {
     
-    if (argc != 5) {
+    if (argc < 5) {
         printf("Error");
         exit(0);
     }
@@ -92,6 +92,12 @@ int parse_args(int argc, char *argv[], struct cmd_args *cmd_args) {
     cmd_args->particles_out = argv[2];
     cmd_args->stepcount = atoi(argv[3]);
     cmd_args->deltatime = atof(argv[4]);
+
+    if (argc == 5) {
+        cmd_args->verbose = 0;
+    } else {
+        cmd_args->verbose = 1;
+    }
 
     return 0;
 }

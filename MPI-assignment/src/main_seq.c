@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        // printf("New accs: %.15lf, %.15lf, %.15lf\n", allParticles[i].fx, allParticles[i].fy, allParticles[i].fz);
+        printf("New accs: %.15lf, %.15lf, %.15lf\n", allParticles[i].fx, allParticles[i].fy, allParticles[i].fz);
 
         update_acceleration(&allParticles[i]);
     }
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            // printf("New accs: %.15lf, %.15lf, %.15lf\n", allParticles[i].fx, allParticles[i].fy, allParticles[i].fz);
+            printf("New accs: %.15lf, %.15lf, %.15lf\n", allParticles[i].fx, allParticles[i].fy, allParticles[i].fz);
 
             update_velocity(&allParticles[i], cmd_args.deltatime);
             update_acceleration(&allParticles[i]);

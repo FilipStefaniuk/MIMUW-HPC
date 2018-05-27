@@ -333,6 +333,8 @@ void compute_acceleration(int *b_owner, int *b_count, struct particle *b[], MPI_
 
         // printf("{%d} position %.16lf %.16lf %.16lf\n", myProcessNo, b[1][i].x, b[1][i].y, b[1][i].z);
     }
+    MPI_Barrier(MPI_COMM_WORLD);
+
 
     //-------------------------------------------------------------------------
 
@@ -439,7 +441,6 @@ int main(int argc, char *argv[]) {
             update_position(&b[1][j], cmd_args.deltatime);
         }
         
-        MPI_Barrier(MPI_COMM_WORLD);
         compute_acceleration(b_owner, b_count, b, &mpi_particle_type, numProcesses, myProcessNo, myParticlesCount, particlesCountRoundUp, sendcounts, prev, next);
         
         for(int j = 0; j < myParticlesCount; ++j) {
