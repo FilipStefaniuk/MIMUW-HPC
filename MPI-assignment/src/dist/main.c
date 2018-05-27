@@ -1,8 +1,8 @@
 #include <mpi.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "utilities.h"
-#include "particle.h"
+#include "../utilities.h"
+#include "../particle.h"
 #include "simulation.h"
 
 int main(int argc, char *argv[]) {

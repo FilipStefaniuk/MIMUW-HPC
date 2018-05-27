@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "particle.h"
+#include "../particle.h"
 #include "simulation.h"
-#include "utilities.h"
 
 //-------------------------------------------------------------------------------------------------
 //                                 INIT / CLEANUP SIMULATION

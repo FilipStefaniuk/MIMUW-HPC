@@ -2,7 +2,7 @@
 #define __SIMULATION_H__
 
 #include <mpi.h>
-#include "utilities.h"
+#include "../utilities.h"
 
 #define ROOT_PROCESS 0
 #define NUM_BUFFS 3
