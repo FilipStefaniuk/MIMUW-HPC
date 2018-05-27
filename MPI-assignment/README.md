@@ -48,7 +48,7 @@ I have used profiler in sampling mode the images below shows that most time is s
 
 ```
 
-![](./media/Samples.png)
+![](./media/samples.png)
 
 The time spent on synchronisation is low:
 
