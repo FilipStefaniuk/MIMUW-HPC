@@ -40,6 +40,11 @@ struct particle * parse_input(char *filename, int *count) {
     init_buff(&buff, 10);
 
     FILE *fp = fopen(filename, "r");
+
+    if (fp == NULL) {
+        perror("failed to open file %s");
+        exit(EXIT_FAILURE);
+    }
     
     while (fscanf(fp, "%lf", &x) != EOF) {
         insert_buff(&buff, x);
@@ -71,6 +76,11 @@ int write_output(char *filename, int count, struct particle *p, int step) {
 
     FILE *fp = fopen(name_buff, "w+");
 
+    if (fp == NULL) {
+        perror("failed to write file");
+        return 1;
+    }
+
     for (int i = 0; i < count; ++i, ++p) {
         
         if (i)
@@ -98,8 +108,11 @@ int parse_args(int argc, char *argv[], struct cmd_args *cmd_args) {
 
     if (argc == 5) {
         cmd_args->verbose = 0;
-    } else {
+    } else if (strcmp("-v", argv[5]) == 0) {
         cmd_args->verbose = 1;
+    } else {
+        perror("invalid argument");
+        exit(EXIT_FAILURE);
     }
 
     return 0;
