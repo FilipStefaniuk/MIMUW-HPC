@@ -81,6 +81,17 @@ int write_output(char *filename, int count, struct particle *p) {
     return 0;
 }
 
+int write_log(char *filename, int count, struct particle *p, int step) {
+    char name_buff[256];
+    char *ext = strchr(filename, '.');
+    int name_len = strlen(filename) - strlen(ext);
+    
+    memcpy(name_buff, filename, name_len);
+    sprintf(name_buff + name_len, "-%d%s", step, ext);
+
+    return write_output(name_buff, count, p);
+}
+
 int parse_args(int argc, char *argv[], struct cmd_args *cmd_args) {
     
     if (argc < 5) {

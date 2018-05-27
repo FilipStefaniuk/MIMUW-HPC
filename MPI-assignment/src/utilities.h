@@ -17,4 +17,6 @@ struct particle * parse_input(char *filename, int *count);
 
 int write_output(char *filename, int count, struct particle *p);
 
+int write_log(char *filename, int count, struct particle *p, int step);
+
 #endif
