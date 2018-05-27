@@ -15,8 +15,7 @@ int parse_args(int argc, char *argv[], struct cmd_args *cmd_args);
 
 struct particle * parse_input(char *filename, int *count);
 
-int write_output(char *filename, int count, struct particle *p);
-
+int write_final_output(char *filename, int count, struct particle *p);
 int write_log(char *filename, int count, struct particle *p, int step);
 
 #endif

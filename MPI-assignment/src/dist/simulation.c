@@ -331,7 +331,7 @@ void run_simulation(struct particle *particles, int count,
 
     // Write output
     if (mpi_data->proc_nr == ROOT_PROCESS) {
-        write_output(cmd_args->particles_out, p_data.p_count, particles);
+        write_final_output(cmd_args->particles_out, p_data.p_count, particles);
     }
     
     // Cleanup

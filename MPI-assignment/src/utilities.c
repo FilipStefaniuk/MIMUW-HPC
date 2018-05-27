@@ -64,7 +64,7 @@ struct particle * parse_input(char *filename, int *count) {
     return p;
 }
 
-int write_output(char *filename, int count, struct particle *p) {
+static int write_output(char *filename, int count, struct particle *p) {
     
     FILE *fp = fopen(filename, "w+");
 
@@ -82,12 +82,15 @@ int write_output(char *filename, int count, struct particle *p) {
 }
 
 int write_log(char *filename, int count, struct particle *p, int step) {
+    char name_buff[256];    
+    sprintf(name_buff, "%s_%d.txt", filename, step);
+
+    return write_output(name_buff, count, p);
+}
+
+int write_final_output(char *filename, int count, struct particle *p) {
     char name_buff[256];
-    char *ext = strchr(filename, '.');
-    int name_len = strlen(filename) - strlen(ext);
-    
-    memcpy(name_buff, filename, name_len);
-    sprintf(name_buff + name_len, "-%d%s", step, ext);
+    sprintf(name_buff, "%s_stepcount.txt", filename);
 
     return write_output(name_buff, count, p);
 }

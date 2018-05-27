@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    write_output(cmd_args.particles_out, allParticlesCount, allParticles);
+    write_final_output(cmd_args.particles_out, allParticlesCount, allParticles);
 
     if (allParticles != NULL) {
         free(allParticles);
