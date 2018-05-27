@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 #include "../particle.h"
 #include "simulation.h"
 
@@ -323,17 +324,12 @@ void run_simulation(struct particle *particles, int count,
             MPI_Gatherv(b[MY_BUFF].buff, b[MY_BUFF].count, p_data.type, particles,
                 p_data.sendcounts, p_data.displs, p_data.type, ROOT_PROCESS, MPI_COMM_WORLD);
 
-            if (mpi_data->proc_nr == ROOT_PROCESS && cmd_args->verbose) {
-                write_log(cmd_args->particles_out, p_data.p_count, particles, i + 1);
+            if (mpi_data->proc_nr == ROOT_PROCESS) {
+                write_output(cmd_args->particles_out, p_data.p_count, particles, i + 1);
             }
         }
     }
-
-    // Write output
-    if (mpi_data->proc_nr == ROOT_PROCESS) {
-        write_final_output(cmd_args->particles_out, p_data.p_count, particles);
-    }
-    
+  
     // Cleanup
     free_particles_data(&p_data);
     for (int i = 0; i < NUM_BUFFS; ++i) {

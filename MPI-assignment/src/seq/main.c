@@ -53,11 +53,13 @@ int main(int argc, char *argv[]) {
         }
 
         if (cmd_args.verbose) {
-            write_log(cmd_args.particles_out, allParticlesCount, allParticles, step+1);
+            write_output(cmd_args.particles_out, allParticlesCount, allParticles, step+1);
         }
     }
 
-    write_final_output(cmd_args.particles_out, allParticlesCount, allParticles);
+    if (cmd_args.verbose == 0) {
+        write_output(cmd_args.particles_out, allParticlesCount, allParticles, cmd_args.stepcount);
+    }
 
     if (allParticles != NULL) {
         free(allParticles);

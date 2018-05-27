@@ -64,9 +64,12 @@ struct particle * parse_input(char *filename, int *count) {
     return p;
 }
 
-static int write_output(char *filename, int count, struct particle *p) {
-    
-    FILE *fp = fopen(filename, "w+");
+int write_output(char *filename, int count, struct particle *p, int step) {
+
+    char name_buff[256];
+    sprintf(name_buff, "%s_%d.txt", filename, step);
+
+    FILE *fp = fopen(name_buff, "w+");
 
     for (int i = 0; i < count; ++i, ++p) {
         
@@ -79,20 +82,6 @@ static int write_output(char *filename, int count, struct particle *p) {
     fclose(fp);
 
     return 0;
-}
-
-int write_log(char *filename, int count, struct particle *p, int step) {
-    char name_buff[256];    
-    sprintf(name_buff, "%s_%d.txt", filename, step);
-
-    return write_output(name_buff, count, p);
-}
-
-int write_final_output(char *filename, int count, struct particle *p) {
-    char name_buff[256];
-    sprintf(name_buff, "%s_stepcount.txt", filename);
-
-    return write_output(name_buff, count, p);
 }
 
 int parse_args(int argc, char *argv[], struct cmd_args *cmd_args) {

@@ -1,8 +1,8 @@
 CC = mpicc
-FLAGS= -Wall -O3 -lm
+FLAGS= -O3 -lm
 SRCS= ./src/particle.c ./src/utilities.c
 
-.PHONY: body3_dist body3_seq clean
+.PHONY: body3-dist body3-seq clean
 
 all: body3
 

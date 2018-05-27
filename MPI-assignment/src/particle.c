@@ -19,8 +19,6 @@ double axilrod_teller(const struct particle  *i, const struct particle *j, const
     double rsq_ij, rsq_ik, rsq_kj;
     double mul, num;
 
-    // double tmp;
-
     r_ij = norm_dist(i, j);
     r_ik = norm_dist(i, k);
     r_kj = norm_dist(k, j);
@@ -36,9 +34,6 @@ double axilrod_teller(const struct particle  *i, const struct particle *j, const
             * (rsq_ij + rsq_ik - rsq_kj);
     
     return (1 / pow(mul, 3.0)) + (num / (8 * pow(mul, 5.0)));
-    
-    // printf("%.16lf\n", tmp);
-    // return tmp;
 }
 
 double calculate_h(double pos) {
